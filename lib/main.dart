@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:serviko_admin/core/theme/app_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,10 +15,7 @@ class ServikoAdminApp extends StatelessWidget {
     return MaterialApp(
       title: 'Serviko Admin',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.light,
       home: const Scaffold(body: Center(child: Text('Serviko Admin Panel'))),
     );
   }
