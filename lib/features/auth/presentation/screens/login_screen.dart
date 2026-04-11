@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:serviko_admin/core/constants/app_colors.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/admin_branding_side.dart';
@@ -34,7 +35,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             backgroundColor: AppColors.success,
           ),
         );
-        // TODO: Navigate to Dashboard
+        // Navigate to Dashboard
+        context.go('/dashboard');
       }
     });
 
