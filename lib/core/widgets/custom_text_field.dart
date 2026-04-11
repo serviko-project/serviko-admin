@@ -1,0 +1,113 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:serviko_admin/core/constants/app_colors.dart';
+import 'package:serviko_admin/core/constants/app_sizes.dart';
+import 'package:serviko_admin/core/theme/text_styles.dart';
+
+// Custom Text Field with Label and Validation
+class CustomTextField extends StatefulWidget {
+  final String hintText;
+  final String? labelText;
+  final TextEditingController? controller;
+  final bool isPassword;
+  final TextInputType keyboardType;
+  final String? Function(String?)? validator;
+  final void Function(String)? onChanged;
+  final Widget? prefixIcon;
+  final Widget? suffixIcon;
+  final bool readOnly;
+  final VoidCallback? onTap;
+  final int maxLines;
+  final FocusNode? focusNode;
+  final List<TextInputFormatter>? inputFormatters;
+  final TextInputAction? textInputAction;
+  final AutovalidateMode? autovalidateMode;
+  final void Function(String)? onfieldSubmitted;
+
+  const CustomTextField({
+    super.key,
+    required this.hintText,
+    this.labelText,
+    this.controller,
+    this.isPassword = false,
+    this.keyboardType = TextInputType.text,
+    this.validator,
+    this.onChanged,
+    this.prefixIcon,
+    this.suffixIcon,
+    this.readOnly = false,
+    this.onTap,
+    this.maxLines = 1,
+    this.focusNode,
+    this.inputFormatters,
+    this.textInputAction,
+    this.autovalidateMode,
+    this.onfieldSubmitted,
+  });
+
+  @override
+  State<CustomTextField> createState() => _CustomTextFieldState();
+}
+
+class _CustomTextFieldState extends State<CustomTextField> {
+  bool _obscureText = true;
+
+  // Returns digit-only formatters for number/phone keyboard types
+  List<TextInputFormatter>? get _defaultFormatters {
+    if (widget.keyboardType == TextInputType.number ||
+        widget.keyboardType == TextInputType.phone) {
+      return [FilteringTextInputFormatter.digitsOnly];
+    }
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (widget.labelText != null) ...[
+          Text(widget.labelText!, style: AppTextStyles.labelMedium),
+          const SizedBox(height: AppSizes.sm),
+        ],
+        TextFormField(
+          controller: widget.controller,
+          focusNode: widget.focusNode,
+          obscureText: widget.isPassword ? _obscureText : false,
+          keyboardType: widget.keyboardType,
+          textInputAction: widget.textInputAction,
+          inputFormatters: widget.inputFormatters ?? _defaultFormatters,
+          autovalidateMode:
+              widget.autovalidateMode ?? AutovalidateMode.onUserInteraction,
+          onFieldSubmitted: widget.onfieldSubmitted,
+          validator: widget.validator,
+          onChanged: widget.onChanged,
+          readOnly: widget.readOnly,
+          onTap: widget.onTap,
+          maxLines: widget.isPassword ? 1 : widget.maxLines,
+          style: AppTextStyles.bodyMedium,
+          decoration: InputDecoration(
+            hintText: widget.hintText,
+            hintStyle: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textHint,
+            ),
+            prefixIcon: widget.prefixIcon,
+            suffixIcon: widget.isPassword
+                ? IconButton(
+                    icon: Icon(
+                      _obscureText
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                      color: AppColors.textHint,
+                    ),
+                    onPressed: () {
+                      setState(() => _obscureText = !_obscureText);
+                    },
+                  )
+                : widget.suffixIcon,
+          ),
+        ),
+      ],
+    );
+  }
+}

@@ -1,6 +1,7 @@
 name: serviko_admin
-description: "A minimal admin dashboard for managing providers, categories, bookings and approvals in the Serviko platform."
-publish_to: 'none' 
+description: "A minimal admin dashboard for managing providers, categories,
+  bookings and approvals in the Serviko platform."
+publish_to: 'none'
 version: 1.0.0+1
 
 environment:
@@ -8,49 +9,22 @@ environment:
 
 # Dependencies
 dependencies:
-  flutter:
-    sdk: flutter 
   cupertino_icons: ^1.0.8
+  flutter:
+    sdk: flutter
   flutter_riverpod: ^3.3.1
   google_fonts: ^8.0.2
+  lottie: ^3.3.3
 
-
-# Dev Dependencies  
+# Dev Dependencies
 dev_dependencies:
-  flutter_test:
-    sdk: flutter 
   flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter
 
 flutter:
   uses-material-design: true
-
-  
-  
-  
-  
-
-  
-  
-
-  
-  
-
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+  # Assets
+  assets:
+    - assets/images/
+    - assets/animations/

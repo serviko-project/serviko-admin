@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:serviko_admin/core/theme/app_theme.dart';
+import 'package:serviko_admin/features/auth/presentation/screens/login_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,7 +17,7 @@ class ServikoAdminApp extends StatelessWidget {
       title: 'Serviko Admin',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      home: const Scaffold(body: Center(child: Text('Serviko Admin Panel'))),
+      home: const LoginScreen(),
     );
   }
 }
