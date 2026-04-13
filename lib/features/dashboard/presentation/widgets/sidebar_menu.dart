@@ -84,7 +84,7 @@ class SidebarMenu extends StatelessWidget {
                   icon: Icons.category_outlined,
                   title: 'Categories',
                   isActive: currentLocation.startsWith('/categories'),
-                  onTap: () {},
+                  onTap: () => context.goNamed('categories'),
                 ),
 
                 // Category Requests Menu Item
