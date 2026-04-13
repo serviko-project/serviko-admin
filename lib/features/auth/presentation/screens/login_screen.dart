@@ -36,7 +36,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         );
         // Navigate to Dashboard
-        context.go('/dashboard');
+        context.goNamed('dashboard');
       }
     });
 

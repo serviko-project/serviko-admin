@@ -102,6 +102,7 @@ class _AdminLoginFormState extends ConsumerState<AdminLoginForm> {
                     onfieldSubmitted: (p0) => _passwordFocusNode.requestFocus(),
                     prefixIcon: const Icon(
                       Icons.email_outlined,
+                      size: 20,
                       color: AppColors.textHint,
                     ),
                     validator: (value) {
@@ -128,6 +129,7 @@ class _AdminLoginFormState extends ConsumerState<AdminLoginForm> {
                     prefixIcon: const Icon(
                       Icons.lock_outline,
                       color: AppColors.textHint,
+                      size: 20,
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {

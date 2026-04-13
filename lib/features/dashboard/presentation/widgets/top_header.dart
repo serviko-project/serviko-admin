@@ -3,10 +3,12 @@ import 'package:serviko_admin/core/constants/app_colors.dart';
 import 'package:serviko_admin/core/constants/app_sizes.dart';
 import 'package:serviko_admin/core/theme/text_styles.dart';
 
+// Top Header Widget for Dashboard
 class TopHeader extends StatelessWidget {
-  const TopHeader({super.key, required this.isDesktop});
+  const TopHeader({super.key, required this.isDesktop, required this.title});
 
   final bool isDesktop;
+  final String title;
 
   @override
   Widget build(BuildContext context) {
@@ -29,47 +31,16 @@ class TopHeader extends StatelessWidget {
 
           // Page Title
           Text(
-            'Dashboard',
-            style: AppTextStyles.h2.copyWith(fontWeight: FontWeight.bold),
+            title,
+            style: AppTextStyles.h3.copyWith(
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2,
+            ),
           ),
 
           const SizedBox(width: AppSizes.xl),
 
-          // Search Bar
-          if (isDesktop)
-            Expanded(
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Container(
-                  constraints: const BoxConstraints(maxWidth: 400),
-                  decoration: BoxDecoration(
-                    color: AppColors.background,
-                    borderRadius: BorderRadius.circular(AppSizes.radiusMd),
-                  ),
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: 'Search analytics...',
-                      hintStyle: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.textHint,
-                      ),
-                      prefixIcon: const Icon(
-                        Icons.search,
-                        size: 20,
-                        color: AppColors.textHint,
-                      ),
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                  ),
-                ),
-              ),
-            )
-          else
-            const Spacer(),
-
-          if (isDesktop) const Spacer(),
+          const Spacer(),
 
           // Notification Bell
           Stack(

@@ -68,7 +68,7 @@ class SidebarMenu extends StatelessWidget {
                   icon: Icons.dashboard_outlined,
                   title: 'Dashboard',
                   isActive: currentLocation.startsWith('/dashboard'),
-                  onTap: () => context.go('/dashboard'),
+                  onTap: () => context.goNamed('dashboard'),
                 ),
 
                 // Providers Menu Item
@@ -76,7 +76,7 @@ class SidebarMenu extends StatelessWidget {
                   icon: Icons.people_outline,
                   title: 'Providers',
                   isActive: currentLocation.startsWith('/providers'),
-                  onTap: () {},
+                  onTap: () => context.goNamed('providers'),
                 ),
 
                 // Categories Menu Item
