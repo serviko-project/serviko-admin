@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:serviko_admin/core/constants/app_colors.dart';
 import 'package:serviko_admin/core/constants/app_sizes.dart';
 import 'package:serviko_admin/core/theme/text_styles.dart';
+import '../../../../features/category_requests/domain/entities/category_request_status.dart';
+import '../../../../features/category_requests/presentation/providers/category_request_provider.dart';
 import 'components/menu_tile.dart';
 
 // Sidebar Menu Widget
-class SidebarMenu extends StatelessWidget {
+class SidebarMenu extends ConsumerWidget {
   const SidebarMenu({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     // Current path
     final currentLocation = GoRouterState.of(context).uri.path;
 
@@ -88,12 +91,28 @@ class SidebarMenu extends StatelessWidget {
                 ),
 
                 // Category Requests Menu Item
-                MenuTile(
-                  icon: Icons.assignment_outlined,
-                  title: 'Category Requests',
-                  isActive: currentLocation.startsWith('/category-requests'),
-                  onTap: () {},
-                  badgeCount: 3,
+                Consumer(
+                  builder: (context, ref, child) {
+                    final countsAsync = ref.watch(
+                      categoryRequestCountsProvider,
+                    );
+                    final pendingCount =
+                        countsAsync.whenOrNull(
+                          data: (counts) =>
+                              counts[CategoryRequestStatus.pending],
+                        ) ??
+                        0;
+
+                    return MenuTile(
+                      icon: Icons.assignment_outlined,
+                      title: 'Category Requests',
+                      isActive: currentLocation.startsWith(
+                        '/category-requests',
+                      ),
+                      onTap: () => context.goNamed('category-requests'),
+                      badgeCount: pendingCount > 0 ? pendingCount : null,
+                    );
+                  },
                 ),
               ],
             ),

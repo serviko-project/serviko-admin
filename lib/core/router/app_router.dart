@@ -5,6 +5,7 @@ import 'package:serviko_admin/features/dashboard/presentation/screens/dashboard_
 import 'package:serviko_admin/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:serviko_admin/features/providers/presentation/screens/providers_screen.dart';
 import 'package:serviko_admin/features/categories/presentation/screens/categories_screen.dart';
+import 'package:serviko_admin/features/category_requests/presentation/screens/category_requests_screen.dart';
 
 // Navigator Keys
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -39,6 +40,12 @@ final GoRouter appRouter = GoRouter(
           path: '/categories',
           pageBuilder: (context, state) =>
               const NoTransitionPage(child: CategoriesScreen()),
+        ),
+        GoRoute(
+          name: 'category-requests',
+          path: '/category-requests',
+          pageBuilder: (context, state) =>
+              const NoTransitionPage(child: CategoryRequestsScreen()),
         ),
       ],
     ),

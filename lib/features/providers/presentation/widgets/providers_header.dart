@@ -25,7 +25,10 @@ class ProvidersHeader extends ConsumerWidget {
                 onChanged: (value) => ref
                     .read(providerSearchQueryProvider.notifier)
                     .setQuery(value),
-                style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textPrimary,
+                ),
                 decoration: const InputDecoration(
                   hintText: 'Search providers by name, email or services',
                   hintStyle: TextStyle(color: AppColors.textHint, fontSize: 12),

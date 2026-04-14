@@ -1,27 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/date_time_utils.dart';
 import '../../domain/entities/provider_entity.dart';
 import 'category_chip.dart';
 import 'status_badge.dart';
-
-// Helper function to format date
-String _formatDate(DateTime date) {
-  const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-  return '${months[date.month - 1]} ${date.day.toString().padLeft(2, '0')}, ${date.year}';
-}
 
 // Builds a Provider TableRow
 TableRow buildProviderTableRow(ProviderEntity provider) {
@@ -112,7 +94,7 @@ TableRow buildProviderTableRow(ProviderEntity provider) {
         child: Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            _formatDate(provider.submittedAt),
+            DateTimeUtils.formatDate(provider.submittedAt),
             style: const TextStyle(
               fontSize: 12,
               color: AppColors.textSecondary,

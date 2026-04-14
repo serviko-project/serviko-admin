@@ -15,9 +15,7 @@ class ProvidersTabBar extends ConsumerWidget {
 
     return Container(
       decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: AppColors.border, width: 1.0),
-        ),
+        border: Border(bottom: BorderSide(color: AppColors.border, width: 1.0)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: SingleChildScrollView(
@@ -106,9 +104,7 @@ class _TabItem extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: isActive ? FontWeight.w700 : FontWeight.w600,
-                color: isActive
-                    ? AppColors.primary
-                    : AppColors.textSecondary,
+                color: isActive ? AppColors.primary : AppColors.textSecondary,
               ),
             ),
             if (badgeCount > 0) ...[

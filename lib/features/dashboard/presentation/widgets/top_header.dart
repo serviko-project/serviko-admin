@@ -30,17 +30,18 @@ class TopHeader extends StatelessWidget {
           ],
 
           // Page Title
-          Text(
-            title,
-            style: AppTextStyles.h3.copyWith(
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.2,
+          Expanded(
+            child: Text(
+              title,
+              style: AppTextStyles.h3.copyWith(
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.2,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
 
-          const SizedBox(width: AppSizes.xl),
-
-          const Spacer(),
+          const SizedBox(width: AppSizes.md),
 
           // Notification Bell
           Stack(
@@ -78,25 +79,28 @@ class TopHeader extends StatelessWidget {
           // Header Profile
           Row(
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Serviko Admin',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      fontWeight: FontWeight.bold,
+              if (isDesktop) ...[
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Serviko Admin',
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  Text(
-                    'Administrator',
-                    style: AppTextStyles.labelSmall.copyWith(
-                      color: AppColors.textHint,
+                    Text(
+                      'Administrator',
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: AppColors.textHint,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(width: AppSizes.md),
+                  ],
+                ),
+                const SizedBox(width: AppSizes.md),
+              ],
+              // Profile Avatar
               const CircleAvatar(
                 backgroundColor: AppColors.primary,
                 child: Icon(Icons.person, color: Colors.white),
