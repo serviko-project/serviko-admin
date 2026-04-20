@@ -4,6 +4,7 @@ import 'package:serviko_admin/features/auth/presentation/screens/login_screen.da
 import 'package:serviko_admin/features/dashboard/presentation/screens/dashboard_layout.dart';
 import 'package:serviko_admin/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:serviko_admin/features/providers/presentation/screens/providers_screen.dart';
+import 'package:serviko_admin/features/providers/presentation/screens/provider_details_screen.dart';
 import 'package:serviko_admin/features/categories/presentation/screens/categories_screen.dart';
 import 'package:serviko_admin/features/category_requests/presentation/screens/category_requests_screen.dart';
 
@@ -46,6 +47,16 @@ final GoRouter appRouter = GoRouter(
           path: '/category-requests',
           pageBuilder: (context, state) =>
               const NoTransitionPage(child: CategoryRequestsScreen()),
+        ),
+        GoRoute(
+          name: 'provider_details',
+          path: '/providers/:id',
+          pageBuilder: (context, state) {
+            final id = state.pathParameters['id']!;
+            return NoTransitionPage(
+              child: ProviderDetailsScreen(providerId: id),
+            );
+          },
         ),
       ],
     ),

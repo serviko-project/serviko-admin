@@ -8,4 +8,8 @@ abstract class ProviderRepository {
     int page = 1,
     int limit = 10,
   });
+
+  Future<ProviderEntity> getProviderById(String id);
+
+  Future<void> updateProviderStatus(String id, ProviderStatus newStatus);
 }

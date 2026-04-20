@@ -50,3 +50,31 @@ final pendingProvidersCountProvider = FutureProvider<int>((ref) async {
   );
   return providers.length;
 });
+
+// --- Provider Details ---
+final providerDetailsProvider = FutureProvider.family<ProviderEntity, String>((
+  ref,
+  id,
+) async {
+  final repository = ref.watch(providerRepositoryProvider);
+  return repository.getProviderById(id);
+});
+
+class ProviderActionService {
+  final Ref ref;
+  ProviderActionService(this.ref);
+
+  Future<void> updateStatus(String id, ProviderStatus status) async {
+    final repo = ref.read(providerRepositoryProvider);
+    await repo.updateProviderStatus(id, status);
+
+    // Invalidate relevant providers to refresh UI
+    ref.invalidate(providerDetailsProvider(id));
+    ref.invalidate(providersListProvider);
+    ref.invalidate(pendingProvidersCountProvider);
+  }
+}
+
+final providerActionServiceProvider = Provider(
+  (ref) => ProviderActionService(ref),
+);

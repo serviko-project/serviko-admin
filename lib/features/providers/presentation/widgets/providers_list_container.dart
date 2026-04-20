@@ -60,7 +60,8 @@ class ProvidersListContainer extends StatelessWidget {
                         buildProviderTableHeader(),
                         if (!isLoading && providers.isNotEmpty)
                           ...providers.map(
-                            (provider) => buildProviderTableRow(provider),
+                            (provider) =>
+                                buildProviderTableRow(provider, context),
                           ),
                       ],
                     ),
