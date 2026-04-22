@@ -1,82 +1,57 @@
-import 'package:flutter/material.dart';
 import '../../domain/entities/category_entity.dart';
 import '../../domain/entities/category_status.dart';
 import '../../domain/repositories/category_repository.dart';
-import '../models/category_model.dart';
+import '../datasources/category_remote_datasource.dart';
 
 class CategoryRepositoryImpl implements CategoryRepository {
-  final List<CategoryEntity> _mockCategories = [
-    const CategoryModel(
-      id: '1',
-      title: 'House Cleaning',
-      icon: Icons.cleaning_services_outlined,
-      providerCount: 10,
-      status: CategoryStatus.active,
-    ),
-    const CategoryModel(
-      id: '2',
-      title: 'Plumbing',
-      icon: Icons.plumbing_outlined,
-      providerCount: 20,
-      status: CategoryStatus.active,
-    ),
-    const CategoryModel(
-      id: '3',
-      title: 'Painting',
-      icon: Icons.format_paint_outlined,
-      providerCount: 30,
-      status: CategoryStatus.active,
-    ),
-    const CategoryModel(
-      id: '4',
-      title: 'Laundry',
-      icon: Icons.local_laundry_service_outlined,
-      providerCount: 40,
-      status: CategoryStatus.active,
-    ),
-    const CategoryModel(
-      id: '5',
-      title: 'Appliance Repair',
-      icon: Icons.build_outlined,
-      providerCount: 50,
-      status: CategoryStatus.active,
-    ),
-    const CategoryModel(
-      id: '6',
-      title: 'Car Repair',
-      icon: Icons.directions_car_outlined,
-      providerCount: 60,
-      status: CategoryStatus.inactive,
-    ),
-    const CategoryModel(
-      id: '7',
-      title: 'Gardening',
-      icon: Icons.park_outlined,
-      providerCount: 42,
-      status: CategoryStatus.inactive,
-    ),
-  ];
+  CategoryRepositoryImpl(this._datasource);
+
+  final CategoryRemoteDatasource _datasource;
 
   @override
   Future<List<CategoryEntity>> getCategories({
     CategoryStatus? status,
     String? searchQuery,
   }) async {
-    // Simulate network delay
-    await Future.delayed(const Duration(milliseconds: 600));
+    return _datasource.getCategories(status: status, search: searchQuery);
+  }
 
-    return _mockCategories.where((category) {
-      final matchesStatus = status == null || category.status == status;
+  @override
+  Future<CategoryEntity> createCategory({
+    required String title,
+    required String iconName,
+    String? description,
+    CategoryStatus status = CategoryStatus.active,
+  }) async {
+    final body = <String, dynamic>{
+      'title': title,
+      'icon': iconName,
+      'status': status.name,
+    };
+    if (description != null) body['description'] = description;
 
-      bool matchesSearch = true;
-      if (searchQuery != null && searchQuery.trim().isNotEmpty) {
-        final query = searchQuery.toLowerCase().trim();
-        final title = category.title.toLowerCase();
+    return _datasource.createCategory(body);
+  }
 
-        matchesSearch = title.contains(query);
-      }
+  @override
+  Future<CategoryEntity> updateCategory({
+    required String id,
+    String? title,
+    String? iconName,
+    String? description,
+    CategoryStatus? status,
+  }) async {
+    final body = <String, dynamic>{};
+    if (title != null) body['title'] = title;
+    if (iconName != null) body['icon'] = iconName;
+    if (description != null) body['description'] = description;
+    if (status != null) body['status'] = status.name;
 
-      return matchesStatus && matchesSearch;
-    }).toList();
+    return _datasource.updateCategory(id, body);
+  }
+
+  @override
+  Future<void> deleteCategory(String id) async {
+    await _datasource.deleteCategory(id);
   }
 }

@@ -1,28 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:serviko_admin/core/constants/app_sizes.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/icon_mapper.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../domain/entities/category_entity.dart';
 import '../../domain/entities/category_status.dart';
+import '../providers/categories_provider.dart';
 
 // Dialog for adding or editing a category
-class AddorEditCategoryDialog extends StatefulWidget {
+class AddorEditCategoryDialog extends ConsumerStatefulWidget {
   const AddorEditCategoryDialog({super.key, this.categoryToEdit});
 
   final CategoryEntity? categoryToEdit;
 
   @override
-  State<AddorEditCategoryDialog> createState() =>
+  ConsumerState<AddorEditCategoryDialog> createState() =>
       _AddorEditCategoryDialogState();
 }
 
-class _AddorEditCategoryDialogState extends State<AddorEditCategoryDialog> {
+class _AddorEditCategoryDialogState
+    extends ConsumerState<AddorEditCategoryDialog> {
   late final GlobalKey<FormState> _formKey;
   late final TextEditingController _titleController;
 
   late final ValueNotifier<CategoryStatus> _statusNotifier;
   late final ValueNotifier<IconData> _selectedIconNotifier;
+  late final ValueNotifier<bool> _isLoading;
 
   // List of icons
   late final List<IconData> _availableIcons;
@@ -31,34 +36,10 @@ class _AddorEditCategoryDialogState extends State<AddorEditCategoryDialog> {
   void initState() {
     super.initState();
     _formKey = GlobalKey<FormState>();
+    _isLoading = ValueNotifier(false);
 
     // Icons
-    _availableIcons = [
-      Icons.flash_on_rounded,
-      Icons.home_rounded,
-      Icons.build_rounded,
-      Icons.water_drop_rounded,
-      Icons.ac_unit_rounded,
-      Icons.local_shipping_rounded,
-      Icons.security_rounded,
-      Icons.palette_rounded,
-      Icons.cleaning_services_rounded,
-      Icons.yard_rounded,
-      Icons.computer_rounded,
-      Icons.directions_car_rounded,
-      Icons.format_paint_rounded,
-      Icons.iron_rounded,
-      Icons.pets_rounded,
-      Icons.engineering_rounded,
-      Icons.camera_alt_rounded,
-      Icons.spa_rounded,
-      Icons.fitness_center_rounded,
-      Icons.fastfood_rounded,
-      Icons.shopping_bag_rounded,
-      Icons.medical_services_rounded,
-      Icons.chair_rounded,
-      Icons.inventory_2_rounded,
-    ];
+    _availableIcons = List.of(IconMapper.availableIcons);
 
     // Editing -> Pre fill Icon
     if (widget.categoryToEdit?.icon != null) {
@@ -78,7 +59,7 @@ class _AddorEditCategoryDialogState extends State<AddorEditCategoryDialog> {
       widget.categoryToEdit?.status ?? CategoryStatus.active,
     );
     _selectedIconNotifier = ValueNotifier(
-      widget.categoryToEdit?.icon ?? Icons.flash_on_rounded,
+      widget.categoryToEdit?.icon ?? _availableIcons.first,
     );
   }
 
@@ -87,20 +68,65 @@ class _AddorEditCategoryDialogState extends State<AddorEditCategoryDialog> {
     _titleController.dispose();
     _statusNotifier.dispose();
     _selectedIconNotifier.dispose();
+    _isLoading.dispose();
     super.dispose();
   }
 
-  void _submit() {
-    if (_formKey.currentState!.validate()) {
-      final newCategoryDetails = {
-        'id': widget.categoryToEdit?.id,
-        'title': _titleController.text.trim(),
-        'icon': _selectedIconNotifier.value,
-        'status': _statusNotifier.value,
-      };
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
 
-      // Pop the Dialog
-      context.pop(newCategoryDetails);
+    _isLoading.value = true;
+
+    final notifier = ref.read(categoriesListProvider.notifier);
+    final isEditing = widget.categoryToEdit != null;
+    final iconName = IconMapper.toName(_selectedIconNotifier.value);
+
+    bool success;
+
+    if (isEditing) {
+      success = await notifier.updateCategory(
+        id: widget.categoryToEdit!.id,
+        title: _titleController.text.trim(),
+        iconName: iconName,
+        status: _statusNotifier.value,
+      );
+    } else {
+      success = await notifier.createCategory(
+        title: _titleController.text.trim(),
+        iconName: iconName,
+        status: _statusNotifier.value,
+      );
+    }
+
+    _isLoading.value = false;
+
+    if (!mounted) return;
+
+    if (success) {
+      context.pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isEditing
+                ? 'Category updated successfully'
+                : 'Category created successfully',
+          ),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isEditing
+                ? 'Failed to update category'
+                : 'Failed to create category',
+          ),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -317,26 +343,42 @@ class _AddorEditCategoryDialogState extends State<AddorEditCategoryDialog> {
                   ),
                   const SizedBox(width: 16),
 
-                  // Create / Save Button
+                  // Create / Save Button with loading state
                   Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: AppColors.background,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: _submit,
-                      child: Text(
-                        isEditing ? 'Save Changes' : 'Create Category',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                    child: ValueListenableBuilder<bool>(
+                      valueListenable: _isLoading,
+                      builder: (context, loading, child) {
+                        return ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: AppColors.background,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: loading ? null : _submit,
+                          child: loading
+                              ? const SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: AppColors.background,
+                                  ),
+                                )
+                              : Text(
+                                  isEditing
+                                      ? 'Save Changes'
+                                      : 'Create Category',
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                        );
+                      },
                     ),
                   ),
                 ],

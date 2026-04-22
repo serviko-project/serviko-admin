@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../domain/entities/category_entity.dart';
 import '../../domain/entities/category_status.dart';
-import 'add_category_dialog.dart';
+import '../providers/categories_provider.dart';
+import 'add_or_edit_category_dialog.dart';
 
 // Category Card Widget
-class CategoryCard extends StatefulWidget {
+class CategoryCard extends ConsumerStatefulWidget {
   const CategoryCard({super.key, required this.category});
 
   final CategoryEntity category;
 
   @override
-  State<CategoryCard> createState() => _CategoryCardState();
+  ConsumerState<CategoryCard> createState() => _CategoryCardState();
 }
 
-class _CategoryCardState extends State<CategoryCard> {
+class _CategoryCardState extends ConsumerState<CategoryCard> {
   late final ValueNotifier<bool> _isHovered;
 
   @override
@@ -27,6 +29,59 @@ class _CategoryCardState extends State<CategoryCard> {
   void dispose() {
     _isHovered.dispose();
     super.dispose();
+  }
+
+  // Handle edit
+  void _onEdit() {
+    showDialog(
+      context: context,
+      builder: (context) => AddorEditCategoryDialog(
+        categoryToEdit: widget.category,
+      ),
+    );
+  }
+
+  // Handle delete
+  Future<void> _onDelete() async {
+    final confirm = await _showDeleteAlertDialogue(context);
+    if (confirm != true || !mounted) return;
+
+    final success = await ref
+        .read(categoriesListProvider.notifier)
+        .deleteCategory(widget.category.id);
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success
+              ? '"${widget.category.title}" deleted'
+              : 'Failed to delete category',
+        ),
+        backgroundColor: success ? AppColors.success : AppColors.error,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  // Handle status toggle
+  Future<void> _onToggleStatus(bool val) async {
+    final success = await ref
+        .read(categoriesListProvider.notifier)
+        .toggleStatus(widget.category);
+
+    if (!mounted) return;
+
+    if (!success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to update status'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   @override
@@ -106,7 +161,7 @@ class _CategoryCardState extends State<CategoryCard> {
                             scale: 0.65,
                             child: Switch(
                               value: isActive,
-                              onChanged: (val) {},
+                              onChanged: _onToggleStatus,
                               activeTrackColor: AppColors.success,
                               inactiveThumbColor: AppColors.background,
                               inactiveTrackColor: AppColors.border,
@@ -161,17 +216,7 @@ class _CategoryCardState extends State<CategoryCard> {
                           Tooltip(
                             message: 'Edit Category',
                             child: InkWell(
-                              onTap: () async {
-                                final result = await showDialog(
-                                  context: context,
-                                  builder: (context) => AddorEditCategoryDialog(
-                                    categoryToEdit: widget.category,
-                                  ),
-                                );
-                                if (result != null) {
-                                  // Update category
-                                }
-                              },
+                              onTap: _onEdit,
                               borderRadius: BorderRadius.circular(8),
                               child: Container(
                                 padding: const EdgeInsets.all(6),
@@ -193,15 +238,7 @@ class _CategoryCardState extends State<CategoryCard> {
                           Tooltip(
                             message: 'Delete Category',
                             child: InkWell(
-                              onTap: () async {
-                                final confirm = await showDeleteAlertDialogue(
-                                  context,
-                                );
-
-                                if (confirm == true) {
-                                  // Delete category
-                                }
-                              },
+                              onTap: _onDelete,
                               borderRadius: BorderRadius.circular(8),
                               child: Container(
                                 padding: const EdgeInsets.all(6),
@@ -239,7 +276,7 @@ class _CategoryCardState extends State<CategoryCard> {
   }
 
   // Show delete confirmation dialog
-  Future<bool?> showDeleteAlertDialogue(BuildContext context) {
+  Future<bool?> _showDeleteAlertDialogue(BuildContext context) {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(

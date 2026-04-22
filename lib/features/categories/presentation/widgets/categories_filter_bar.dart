@@ -5,7 +5,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../domain/entities/category_status.dart';
 import '../providers/categories_provider.dart';
-import 'add_category_dialog.dart';
+import 'add_or_edit_category_dialog.dart';
 
 // Categories Filter Bar with Search and Status Tabs
 class CategoriesFilterBar extends ConsumerStatefulWidget {
@@ -72,10 +72,9 @@ class _CategoriesFilterBarState extends ConsumerState<CategoriesFilterBar> {
                                 ),
                                 onPressed: () {
                                   _searchController.clear();
-                                  // Reset the state query on clear
                                   final notifier =
                                       categorySearchQueryProvider.notifier;
-                                  ref.read(notifier).setSearchQuery('');
+                                  ref.read(notifier).clearSearch();
                                 },
                               )
                             : null,
@@ -119,14 +118,11 @@ class _CategoriesFilterBarState extends ConsumerState<CategoriesFilterBar> {
                   SizedBox(
                     height: 40,
                     child: ElevatedButton.icon(
-                      onPressed: () async {
-                        final result = await showDialog(
+                      onPressed: () {
+                        showDialog(
                           context: context,
                           builder: (context) => const AddorEditCategoryDialog(),
                         );
-                        if (result != null) {
-                          // Handle the result
-                        }
                       },
                       icon: const Icon(Icons.add, size: 16),
                       label: const Text(

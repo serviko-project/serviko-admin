@@ -7,6 +7,7 @@ class CategoryEntity {
   final IconData icon;
   final int providerCount;
   final CategoryStatus status;
+  final String? description;
 
   const CategoryEntity({
     required this.id,
@@ -14,5 +15,6 @@ class CategoryEntity {
     required this.icon,
     required this.providerCount,
     required this.status,
+    this.description,
   });
 }
