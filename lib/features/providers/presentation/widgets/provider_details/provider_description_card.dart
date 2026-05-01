@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:serviko_admin/core/constants/app_colors.dart';
 import 'package:serviko_admin/core/constants/app_sizes.dart';
 import 'package:serviko_admin/features/providers/domain/entities/provider_entity.dart';
@@ -11,14 +11,14 @@ class ProviderDescriptionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (provider.description.isEmpty) {
+    if (provider.about == null || provider.about!.isEmpty) {
       return const SizedBox.shrink();
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ProviderSectionTitle('Provider Description'),
+        const ProviderSectionTitle('Provider Description'),
         const SizedBox(height: 7),
         Container(
           width: double.infinity,
@@ -33,7 +33,7 @@ class ProviderDescriptionCard extends StatelessWidget {
             horizontal: AppSizes.lg,
           ),
           child: Text(
-            provider.description,
+            provider.about!,
             style: const TextStyle(
               color: AppColors.textSecondary,
               fontStyle: FontStyle.italic,

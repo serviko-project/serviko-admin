@@ -10,27 +10,7 @@ class StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color backgroundColor;
-    Color textColor;
-    String label;
-
-    switch (status) {
-      case ProviderStatus.active:
-        backgroundColor = AppColors.primary.withAlpha(20);
-        textColor = AppColors.primary;
-        label = 'ACTIVE';
-        break;
-      case ProviderStatus.pending:
-        backgroundColor = AppColors.warning.withAlpha(30);
-        textColor = AppColors.warning;
-        label = 'PENDING';
-        break;
-      case ProviderStatus.blocked:
-        backgroundColor = AppColors.error.withAlpha(30);
-        textColor = AppColors.error;
-        label = 'BLOCKED';
-        break;
-    }
+    final (backgroundColor, textColor, label) = _statusStyle(status);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -48,5 +28,30 @@ class StatusBadge extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  (Color, Color, String) _statusStyle(ProviderStatus status) {
+    return switch (status) {
+      ProviderStatus.approved => (
+        AppColors.primary.withAlpha(20),
+        AppColors.primary,
+        'APPROVED',
+      ),
+      ProviderStatus.pending => (
+        AppColors.warning.withAlpha(30),
+        AppColors.warning,
+        'PENDING',
+      ),
+      ProviderStatus.rejected => (
+        Colors.orange.withAlpha(30),
+        Colors.orange.shade800,
+        'REJECTED',
+      ),
+      ProviderStatus.blocked => (
+        AppColors.error.withAlpha(30),
+        AppColors.error,
+        'BLOCKED',
+      ),
+    };
   }
 }

@@ -43,7 +43,7 @@ class CategorySearchQueryNotifier extends Notifier<String> {
     });
   }
 
-  // Clear search query 
+  // Clear search query
   void clearSearch() {
     _debounce?.cancel();
     state = '';

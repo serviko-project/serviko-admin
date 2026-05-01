@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:serviko_admin/core/utils/date_time_utils.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../providers/domain/entities/provider_entity.dart';
@@ -20,7 +20,9 @@ class ProviderApplicationHistoryCard extends StatelessWidget {
           const ProviderSectionTitle('Application History'),
           _buildTimelineStep(
             title: 'Application submitted',
-            subtitle: DateTimeUtils.formatDate(provider.submittedAt),
+            subtitle: provider.submittedAt != null
+                ? DateTimeUtils.formatDate(provider.submittedAt!)
+                : 'Unknown',
             isActive: true,
             isLast: false,
           ),
@@ -31,20 +33,30 @@ class ProviderApplicationHistoryCard extends StatelessWidget {
               isActive: false,
               isLast: true,
             ),
-          ] else if (provider.status == ProviderStatus.active) ...[
+          ] else if (provider.status == ProviderStatus.approved) ...[
             _buildTimelineStep(
               title: 'Approved',
-              subtitle: provider.actionTakenAt != null
-                  ? DateTimeUtils.formatDate(provider.actionTakenAt!)
+              subtitle: provider.reviewedAt != null
+                  ? DateTimeUtils.formatDate(provider.reviewedAt!)
                   : '',
               isActive: true,
               isLast: true,
             ),
+          ] else if (provider.status == ProviderStatus.rejected) ...[
+            _buildTimelineStep(
+              title: 'Rejected',
+              subtitle: provider.reviewedAt != null
+                  ? DateTimeUtils.formatDate(provider.reviewedAt!)
+                  : '',
+              isActive: true,
+              isError: true,
+              isLast: true,
+            ),
           ] else if (provider.status == ProviderStatus.blocked) ...[
             _buildTimelineStep(
-              title: 'Rejected/Blocked',
-              subtitle: provider.actionTakenAt != null
-                  ? DateTimeUtils.formatDate(provider.actionTakenAt!)
+              title: 'Blocked',
+              subtitle: provider.reviewedAt != null
+                  ? DateTimeUtils.formatDate(provider.reviewedAt!)
                   : '',
               isActive: true,
               isError: true,

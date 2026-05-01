@@ -5,6 +5,9 @@ import '../../domain/entities/category_entity.dart';
 import '../../domain/entities/category_status.dart';
 import '../providers/categories_provider.dart';
 import 'add_or_edit_category_dialog.dart';
+import 'category_card/category_card_actions.dart';
+import 'category_card/category_card_header.dart';
+import 'category_card/delete_category_dialog.dart';
 
 // Category Card Widget
 class CategoryCard extends ConsumerStatefulWidget {
@@ -35,15 +38,19 @@ class _CategoryCardState extends ConsumerState<CategoryCard> {
   void _onEdit() {
     showDialog(
       context: context,
-      builder: (context) => AddorEditCategoryDialog(
-        categoryToEdit: widget.category,
-      ),
+      builder: (context) =>
+          AddorEditCategoryDialog(categoryToEdit: widget.category),
     );
   }
 
   // Handle delete
   Future<void> _onDelete() async {
-    final confirm = await _showDeleteAlertDialogue(context);
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) =>
+          DeleteCategoryDialog(categoryTitle: widget.category.title),
+    );
+
     if (confirm != true || !mounted) return;
 
     final success = await ref
@@ -121,58 +128,10 @@ class _CategoryCardState extends ConsumerState<CategoryCard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Icon & Status
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withAlpha(20),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Center(
-                          child: Icon(
-                            widget.category.icon,
-                            color: AppColors.primary,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          Text(
-                            isActive ? 'ACTIVE' : 'INACTIVE',
-                            style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
-                              color: isActive
-                                  ? AppColors.textSecondary
-                                  : AppColors.textHint,
-                            ),
-                          ),
-                          const SizedBox(width: 3),
-
-                          // Status Toggle
-                          Transform.scale(
-                            scale: 0.65,
-                            child: Switch(
-                              value: isActive,
-                              onChanged: _onToggleStatus,
-                              activeTrackColor: AppColors.success,
-                              inactiveThumbColor: AppColors.background,
-                              inactiveTrackColor: AppColors.border,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                  CategoryCardHeader(
+                    category: widget.category,
+                    onToggleStatus: _onToggleStatus,
                   ),
-
-                  // Title & Subtitle
                   const SizedBox(height: 12),
                   Text(
                     widget.category.title,
@@ -186,8 +145,6 @@ class _CategoryCardState extends ConsumerState<CategoryCard> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 5),
-
-                  // Provider Count
                   Text(
                     '${widget.category.providerCount} providers',
                     style: const TextStyle(
@@ -196,132 +153,18 @@ class _CategoryCardState extends ConsumerState<CategoryCard> {
                       color: AppColors.textSecondary,
                     ),
                   ),
-
                   const Spacer(),
-
-                  //
                   const Divider(
                     height: 16,
                     thickness: 1,
                     color: AppColors.border,
                   ),
-
-                  // Action Buttons & Drag Handle
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          // Edit Button
-                          Tooltip(
-                            message: 'Edit Category',
-                            child: InkWell(
-                              onTap: _onEdit,
-                              borderRadius: BorderRadius.circular(8),
-                              child: Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withAlpha(20),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  Icons.edit_rounded,
-                                  size: 18,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-
-                          // Delete Button
-                          Tooltip(
-                            message: 'Delete Category',
-                            child: InkWell(
-                              onTap: _onDelete,
-                              borderRadius: BorderRadius.circular(8),
-                              child: Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
-                                  color: AppColors.error.withAlpha(20),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  Icons.delete_outline_rounded,
-                                  size: 18,
-                                  color: AppColors.error,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Tooltip(
-                        message: 'Drag to reorder',
-                        child: Icon(
-                          Icons.drag_indicator_rounded,
-                          color: AppColors.border,
-                          size: 20,
-                        ),
-                      ),
-                    ],
-                  ),
+                  CategoryCardActions(onEdit: _onEdit, onDelete: _onDelete),
                 ],
               ),
             ),
           );
         },
-      ),
-    );
-  }
-
-  // Show delete confirmation dialog
-  Future<bool?> _showDeleteAlertDialogue(BuildContext context) {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.background,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Delete Category',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
-          ),
-        ),
-        content: Text(
-          'Are you sure you want to delete "${widget.category.title}"? This action cannot be undone.',
-          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w600,
-                fontSize: 12,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              'Delete',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-            ),
-          ),
-        ],
       ),
     );
   }

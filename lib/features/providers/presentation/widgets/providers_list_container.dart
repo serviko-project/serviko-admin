@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../domain/entities/provider_entity.dart';
+import '../../../../core/network/pagination_meta.dart';
+import '../../domain/entities/provider_list_item_entity.dart';
 import 'provider_table_header.dart';
 import 'provider_table_row.dart';
 import 'providers_pagination_bar.dart';
 
 // Container for the Providers List Table
 class ProvidersListContainer extends StatelessWidget {
-  final List<ProviderEntity> providers;
+  final List<ProviderListItemEntity> providers;
+  final PaginationMeta? meta;
   final bool isLoading;
+  final ValueChanged<int>? onPageChanged;
 
   const ProvidersListContainer({
     super.key,
     required this.providers,
+    this.meta,
     this.isLoading = false,
+    this.onPageChanged,
   });
 
   @override
@@ -41,8 +46,8 @@ class ProvidersListContainer extends StatelessWidget {
                 child: ConstrainedBox(
                   constraints: BoxConstraints(minWidth: constraints.maxWidth),
                   child: SizedBox(
-                    width: constraints.maxWidth < 1000
-                        ? 1000
+                    width: constraints.maxWidth < 900
+                        ? 900
                         : constraints.maxWidth,
                     child: Table(
                       columnWidths: const {
@@ -50,9 +55,7 @@ class ProvidersListContainer extends StatelessWidget {
                         1: FlexColumnWidth(3),
                         2: FlexColumnWidth(2),
                         3: FlexColumnWidth(1.5),
-                        4: FlexColumnWidth(1),
-                        5: FlexColumnWidth(1),
-                        6: FlexColumnWidth(1.5),
+                        4: FlexColumnWidth(1.5),
                       },
                       defaultVerticalAlignment:
                           TableCellVerticalAlignment.middle,
@@ -71,7 +74,7 @@ class ProvidersListContainer extends StatelessWidget {
             },
           ),
 
-          // Data List or Loading state
+          // Loading or empty state
           if (isLoading)
             const Padding(
               padding: EdgeInsets.all(48.0),
@@ -91,12 +94,13 @@ class ProvidersListContainer extends StatelessWidget {
             ),
 
           // Footer Pagination Bar
-          ProvidersPaginationBar(
-            totalItems: 100,
-            currentPage: 1,
-            itemsPerPage: 10,
-            onPageChanged: (value) {},
-          ),
+          if (meta != null)
+            ProvidersPaginationBar(
+              totalItems: meta!.total,
+              currentPage: meta!.page,
+              itemsPerPage: meta!.limit,
+              onPageChanged: onPageChanged ?? (_) {},
+            ),
         ],
       ),
     );

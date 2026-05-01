@@ -3,9 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
-import '../../domain/entities/provider_status.dart';
 import '../providers/providers_provider.dart';
-
 import '../widgets/provider_details/provider_profile_card.dart';
 import '../widgets/provider_details/provider_description_card.dart';
 import '../widgets/provider_details/provider_documents_card.dart';
@@ -24,6 +22,46 @@ class ProviderDetailsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final providerState = ref.watch(providerDetailsProvider(providerId));
+    final review = providerReviewActionProvider(providerId);
+
+    // Listen for action completion to show notifications
+    ref.listen(review, (previous, next) {
+      next.whenOrNull(
+        data: (action) {
+          if (previous is AsyncLoading && action != null) {
+            String message;
+            switch (action) {
+              case 'approve':
+                message = 'Provider approved successfully';
+                break;
+              case 'reject':
+                message = 'Provider rejected successfully';
+                break;
+              case 'block':
+                message = 'Provider blocked successfully';
+                break;
+              default:
+                message = 'Action performed successfully';
+            }
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(message),
+                backgroundColor: AppColors.success,
+              ),
+            );
+          }
+        },
+        error: (err, _) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Action failed: $err'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        },
+      );
+    });
 
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
@@ -63,13 +101,9 @@ class ProviderDetailsScreen extends ConsumerWidget {
                   spacing: 35,
                   children: [
                     ProviderProfileCard(provider: provider),
-
                     ProviderDescriptionCard(provider: provider),
-
                     ProviderDocumentsCard(provider: provider),
-
                     ProviderCategoriesCard(provider: provider),
-
                     ProviderMapCard(provider: provider),
                   ],
                 );
@@ -80,11 +114,20 @@ class ProviderDetailsScreen extends ConsumerWidget {
                   children: [
                     ProviderQuickActionsCard(
                       provider: provider,
-                      onUpdateStatus: (status) => _updateStatus(ref, status),
+                      loadingAction: ref.watch(review).isLoading
+                          ? ref.read(review.notifier).activeAction
+                          : null,
+                      onReviewAction: (action, {rejectionReason}) {
+                        final notifier = ref.read(
+                          providerReviewActionProvider(providerId).notifier,
+                        );
+                        notifier.reviewProvider(
+                          action: action,
+                          rejectionReason: rejectionReason,
+                        );
+                      },
                     ),
-
                     ProviderAvailabilityCard(provider: provider),
-
                     ProviderApplicationHistoryCard(provider: provider),
                   ],
                 );
@@ -114,9 +157,5 @@ class ProviderDetailsScreen extends ConsumerWidget {
         },
       ),
     );
-  }
-
-  void _updateStatus(WidgetRef ref, ProviderStatus newStatus) {
-    ref.read(providerActionServiceProvider).updateStatus(providerId, newStatus);
   }
 }

@@ -13,7 +13,7 @@ class DashboardLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     // Determine screen size for responsiveness
     final isDesktop = MediaQuery.of(context).size.width >= 900;
-    
+
     // Determine the title based on route
     final currentLocation = GoRouterState.of(context).uri.path;
     String pageTitle = 'Dashboard';

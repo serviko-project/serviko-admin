@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:serviko_admin/features/providers/presentation/widgets/provider_details/provider_section_title.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../providers/domain/entities/provider_entity.dart';
@@ -10,10 +10,19 @@ class ProviderMapCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Hide if no location data
+    if (provider.latitude == null || provider.longitude == null) {
+      return const SizedBox.shrink();
+    }
+
+    final radiusText = provider.coverageRadiusKm != null
+        ? '${provider.coverageRadiusKm!.toStringAsFixed(0)} km radius'
+        : 'Coverage area not set';
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        Align(
+        const Align(
           alignment: Alignment.centerLeft,
           child: ProviderSectionTitle("Service Area"),
         ),
@@ -46,14 +55,14 @@ class ProviderMapCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            provider.locationName,
+                            '${provider.latitude!.toStringAsFixed(4)}, ${provider.longitude!.toStringAsFixed(4)}',
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
                           ),
                           Text(
-                            provider.locationRadius,
+                            radiusText,
                             style: const TextStyle(
                               color: AppColors.textSecondary,
                               fontSize: 11,

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 
 TableRow buildProviderTableHeader() {
-  // Header Cell Builder
   Widget buildHeaderCell(String text) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -36,12 +35,9 @@ TableRow buildProviderTableHeader() {
           ),
         ),
       ),
-      // Header Cells
       buildHeaderCell('PROVIDER'),
       buildHeaderCell('CATEGORIES'),
       buildHeaderCell('SUBMITTED'),
-      buildHeaderCell('RATING'),
-      buildHeaderCell('JOBS'),
       buildHeaderCell('STATUS'),
     ],
   );

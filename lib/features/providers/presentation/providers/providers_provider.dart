@@ -1,19 +1,31 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/network/pagination_meta.dart';
+import '../../data/datasources/provider_remote_datasource.dart';
+import '../../data/repositories/provider_repository_impl.dart';
 import '../../domain/entities/provider_entity.dart';
+import '../../domain/entities/provider_list_item_entity.dart';
 import '../../domain/entities/provider_status.dart';
 import '../../domain/repositories/provider_repository.dart';
-import '../../data/repositories/provider_repository_impl.dart';
 
-// --- Repositories ---
-final providerRepositoryProvider = Provider<ProviderRepository>((ref) {
-  return ProviderRepositoryImpl();
+// --- Repository & Datasource ---
+final _providerDatasourceProvider = Provider<ProviderRemoteDatasource>((ref) {
+  return ProviderRemoteDatasource();
 });
 
-// Tab selection
+final providerRepositoryProvider = Provider<ProviderRepository>((ref) {
+  return ProviderRepositoryImpl(ref.watch(_providerDatasourceProvider));
+});
+
+// --- Tab Filter ---
 class ProviderStatusFilterNotifier extends Notifier<ProviderStatus?> {
   @override
   ProviderStatus? build() => null;
-  void setStatus(ProviderStatus? status) => state = status;
+
+  void setStatus(ProviderStatus? status) {
+    state = status;
+    // Reset page when filter changes
+    ref.read(providerPageProvider.notifier).reset();
+  }
 }
 
 final providerStatusFilterProvider =
@@ -21,11 +33,16 @@ final providerStatusFilterProvider =
       return ProviderStatusFilterNotifier();
     });
 
-// For Search
+// --- Search ---
 class ProviderSearchQueryNotifier extends Notifier<String> {
   @override
   String build() => '';
-  void setQuery(String query) => state = query;
+
+  void setQuery(String query) {
+    state = query;
+    // Reset page when search changes
+    ref.read(providerPageProvider.notifier).reset();
+  }
 }
 
 final providerSearchQueryProvider =
@@ -33,22 +50,54 @@ final providerSearchQueryProvider =
       return ProviderSearchQueryNotifier();
     });
 
-// --- List Providers Details ---
-final providersListProvider = FutureProvider<List<ProviderEntity>>((ref) async {
-  final repository = ref.watch(providerRepositoryProvider);
-  final status = ref.watch(providerStatusFilterProvider);
-  final searchQuery = ref.watch(providerSearchQueryProvider);
+// --- Pagination ---
+class ProviderPageNotifier extends Notifier<int> {
+  @override
+  int build() => 1;
 
-  return repository.getProviders(status: status, searchQuery: searchQuery);
+  void setPage(int page) => state = page;
+  void nextPage() => state++;
+  void previousPage() {
+    if (state > 1) state--;
+  }
+
+  void reset() => state = 1;
+}
+
+final providerPageProvider = NotifierProvider<ProviderPageNotifier, int>(() {
+  return ProviderPageNotifier();
 });
 
-// --- Badge Count Provider ---
+final providerPageLimitProvider = Provider<int>((ref) => 20);
+
+// --- List Result ---
+final providersListProvider =
+    FutureProvider<(List<ProviderListItemEntity>, PaginationMeta)>((ref) async {
+      final repository = ref.watch(providerRepositoryProvider);
+      final status = ref.watch(providerStatusFilterProvider);
+      final searchQuery = ref.watch(providerSearchQueryProvider);
+      final page = ref.watch(providerPageProvider);
+      final limit = ref.watch(providerPageLimitProvider);
+
+      return repository.getProviders(
+        status: status,
+        searchQuery: searchQuery,
+        page: page,
+        limit: limit,
+      );
+    });
+
+// --- Pending Badge Count ---
 final pendingProvidersCountProvider = FutureProvider<int>((ref) async {
+  ref.watch(providersListProvider);
+
   final repository = ref.watch(providerRepositoryProvider);
-  final providers = await repository.getProviders(
+  final (_, meta) = await repository.getProviders(
     status: ProviderStatus.pending,
+    page: 1,
+    limit: 1,
   );
-  return providers.length;
+  return meta.total;
 });
 
 // --- Provider Details ---
@@ -60,21 +109,50 @@ final providerDetailsProvider = FutureProvider.family<ProviderEntity, String>((
   return repository.getProviderById(id);
 });
 
-class ProviderActionService {
-  final Ref ref;
-  ProviderActionService(this.ref);
+// --- Review Action Notifier ---
+class ProviderReviewActionNotifier extends AsyncNotifier<String?> {
+  ProviderReviewActionNotifier(this.providerId);
+  final String providerId;
 
-  Future<void> updateStatus(String id, ProviderStatus status) async {
-    final repo = ref.read(providerRepositoryProvider);
-    await repo.updateProviderStatus(id, status);
+  String? activeAction;
 
-    // Invalidate relevant providers to refresh UI
-    ref.invalidate(providerDetailsProvider(id));
-    ref.invalidate(providersListProvider);
-    ref.invalidate(pendingProvidersCountProvider);
+  @override
+  Future<String?> build() async => null;
+
+  Future<void> reviewProvider({
+    required String action,
+    String? rejectionReason,
+  }) async {
+    activeAction = action;
+    state = const AsyncLoading();
+
+    state = await AsyncValue.guard(() async {
+      final repo = ref.read(providerRepositoryProvider);
+      await repo.reviewProvider(
+        providerId,
+        action: action,
+        rejectionReason: rejectionReason,
+      );
+
+      //
+      ref.invalidate(pendingProvidersCountProvider);
+      ref.invalidate(providersListProvider);
+      ref.invalidate(providerDetailsProvider(providerId));
+
+      //
+      await Future.wait([
+        ref.read(pendingProvidersCountProvider.future),
+        ref.read(providerDetailsProvider(providerId).future),
+      ]);
+
+      return action;
+    });
+
+    activeAction = null;
   }
 }
 
-final providerActionServiceProvider = Provider(
-  (ref) => ProviderActionService(ref),
-);
+final providerReviewActionProvider =
+    AsyncNotifierProvider.family<ProviderReviewActionNotifier, String?, String>(
+      ProviderReviewActionNotifier.new,
+    );

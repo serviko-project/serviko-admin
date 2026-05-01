@@ -10,21 +10,28 @@ class ProviderCategoriesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (provider.services.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const ProviderSectionTitle('Service Categories Requested'),
-        Row(
-          children: provider.categories
+        const ProviderSectionTitle('Service Categories'),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: provider.services
               .map(
-                (category) => Padding(
-                  padding: const EdgeInsets.only(right: 16.0),
-                  child: Chip(
-                    label: Text(category, style: const TextStyle(fontSize: 13)),
-                    avatar: const Icon(Icons.category_rounded, size: 16),
-                    backgroundColor: AppColors.background,
-                    side: const BorderSide(color: AppColors.border),
+                (service) => Chip(
+                  labelPadding: const EdgeInsets.all(5),
+                  label: Text(
+                    service.categoryTitle,
+                    style: const TextStyle(fontSize: 13),
                   ),
+                  avatar: const Icon(Icons.category_rounded, size: 16),
+                  backgroundColor: AppColors.background,
+                  side: const BorderSide(color: AppColors.border),
                 ),
               )
               .toList(),
