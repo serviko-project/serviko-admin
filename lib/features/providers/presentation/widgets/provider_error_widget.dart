@@ -3,18 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:serviko_admin/core/constants/app_colors.dart';
 import 'package:serviko_admin/features/providers/presentation/providers/providers_provider.dart';
 
-class ProviderErrorWidget extends StatelessWidget {
-  const ProviderErrorWidget({
-    super.key,
-    required this.ref,
-    required this.error,
-  });
+class ProviderErrorWidget extends ConsumerWidget {
+  const ProviderErrorWidget({super.key, required this.error});
 
-  final WidgetRef ref;
   final String error;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Align(
       alignment: Alignment.center,
       heightFactor: 1.0,

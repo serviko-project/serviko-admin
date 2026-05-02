@@ -31,6 +31,7 @@ class CategoryRequestStatusFilterNotifier
     if (state != status) {
       state = status;
       ref.read(categoryRequestPageProvider.notifier).setPage(1);
+      ref.invalidate(categoryRequestCountsProvider);
     }
   }
 }
@@ -60,7 +61,9 @@ final categoryRequestPageProvider =
 
 // List provider — fetches from API with status filter and page
 final categoryRequestsListProvider =
-    FutureProvider<(List<CategoryRequestEntity>, PaginationMeta)>((ref) async {
+    FutureProvider.autoDispose<(List<CategoryRequestEntity>, PaginationMeta)>((
+      ref,
+    ) async {
       final repository = ref.watch(categoryRequestRepositoryProvider);
       final status = ref.watch(categoryRequestStatusFilterProvider);
       final page = ref.watch(categoryRequestPageProvider);
@@ -78,20 +81,12 @@ class CategoryRequestCountsNotifier
   @override
   Future<Map<CategoryRequestStatus, int>> build() async {
     final repository = ref.watch(categoryRequestRepositoryProvider);
-    ref.watch(categoryRequestsListProvider);
     return repository.getRequestCounts();
-  }
-
-  Future<void> refreshCounts() async {
-    state = await AsyncValue.guard(() async {
-      final repository = ref.read(categoryRequestRepositoryProvider);
-      return repository.getRequestCounts();
-    });
   }
 }
 
 final categoryRequestCountsProvider =
-    AsyncNotifierProvider<
+    AsyncNotifierProvider.autoDispose<
       CategoryRequestCountsNotifier,
       Map<CategoryRequestStatus, int>
     >(() {
@@ -120,11 +115,9 @@ class CategoryRequestController extends Notifier<AsyncValue<void>> {
         status: status,
       );
 
-      // Invalidate list
+      // Invalidate list and counts to fresh data
       ref.invalidate(categoryRequestsListProvider);
-
-      // Refresh counts
-      await ref.read(categoryRequestCountsProvider.notifier).refreshCounts();
+      ref.invalidate(categoryRequestCountsProvider);
 
       state = const AsyncData(null);
     } catch (e, st) {
@@ -139,11 +132,9 @@ class CategoryRequestController extends Notifier<AsyncValue<void>> {
       final repository = ref.read(categoryRequestRepositoryProvider);
       await repository.declineRequest(requestId, adminNote);
 
-      // Invalidate list
+      // Invalidate list and counts to fresh data
       ref.invalidate(categoryRequestsListProvider);
-
-      // Refresh counts
-      await ref.read(categoryRequestCountsProvider.notifier).refreshCounts();
+      ref.invalidate(categoryRequestCountsProvider);
 
       state = const AsyncData(null);
     } catch (e, st) {

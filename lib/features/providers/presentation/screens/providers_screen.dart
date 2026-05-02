@@ -62,7 +62,7 @@ class ProvidersScreen extends ConsumerWidget {
                     ),
                     // Error State
                     error: (error, stack) =>
-                        ProviderErrorWidget(ref: ref, error: error.toString()),
+                        ProviderErrorWidget(error: error.toString()),
                   ),
                 ),
               ],

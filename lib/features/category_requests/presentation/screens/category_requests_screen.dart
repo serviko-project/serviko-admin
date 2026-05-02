@@ -46,14 +46,15 @@ class _CategoryRequestsScreenState
               data: (data) => CategoryRequestsListContainer(
                 requests: data.$1,
                 meta: data.$2,
-                ref: ref,
+                onPageChanged: (page) {
+                  ref.read(categoryRequestPageProvider.notifier).setPage(page);
+                },
               ),
 
               // Loading State
-              loading: () => CategoryRequestsListContainer(
-                requests: const [],
+              loading: () => const CategoryRequestsListContainer(
+                requests: [],
                 isLoading: true,
-                ref: ref,
               ),
 
               // Error State

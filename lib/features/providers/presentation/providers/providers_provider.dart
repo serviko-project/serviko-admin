@@ -72,7 +72,9 @@ final providerPageLimitProvider = Provider<int>((ref) => 20);
 
 // --- List Result ---
 final providersListProvider =
-    FutureProvider<(List<ProviderListItemEntity>, PaginationMeta)>((ref) async {
+    FutureProvider.autoDispose<(List<ProviderListItemEntity>, PaginationMeta)>((
+      ref,
+    ) async {
       final repository = ref.watch(providerRepositoryProvider);
       final status = ref.watch(providerStatusFilterProvider);
       final searchQuery = ref.watch(providerSearchQueryProvider);
@@ -88,9 +90,9 @@ final providersListProvider =
     });
 
 // --- Pending Badge Count ---
-final pendingProvidersCountProvider = FutureProvider<int>((ref) async {
-  ref.watch(providersListProvider);
-
+final pendingProvidersCountProvider = FutureProvider.autoDispose<int>((
+  ref,
+) async {
   final repository = ref.watch(providerRepositoryProvider);
   final (_, meta) = await repository.getProviders(
     status: ProviderStatus.pending,
@@ -101,13 +103,11 @@ final pendingProvidersCountProvider = FutureProvider<int>((ref) async {
 });
 
 // --- Provider Details ---
-final providerDetailsProvider = FutureProvider.family<ProviderEntity, String>((
-  ref,
-  id,
-) async {
-  final repository = ref.watch(providerRepositoryProvider);
-  return repository.getProviderById(id);
-});
+final providerDetailsProvider = FutureProvider.autoDispose
+    .family<ProviderEntity, String>((ref, id) async {
+      final repository = ref.watch(providerRepositoryProvider);
+      return repository.getProviderById(id);
+    });
 
 // --- Review Action Notifier ---
 class ProviderReviewActionNotifier extends AsyncNotifier<String?> {

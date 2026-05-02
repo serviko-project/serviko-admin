@@ -8,24 +8,23 @@ import 'category_request_table_header.dart';
 import 'category_request_table_row.dart';
 import '../../../providers/presentation/widgets/providers_pagination_bar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/category_request_provider.dart';
 
-class CategoryRequestsListContainer extends StatelessWidget {
+class CategoryRequestsListContainer extends ConsumerWidget {
   final bool isLoading;
-  final WidgetRef ref;
   final List<CategoryRequestEntity> requests;
   final PaginationMeta? meta;
+  final ValueChanged<int>? onPageChanged;
 
   const CategoryRequestsListContainer({
     super.key,
     required this.requests,
     this.meta,
     this.isLoading = false,
-    required this.ref,
+    this.onPageChanged,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -109,9 +108,7 @@ class CategoryRequestsListContainer extends StatelessWidget {
               totalItems: meta!.total,
               currentPage: meta!.page,
               itemsPerPage: meta!.limit,
-              onPageChanged: (page) {
-                ref.read(categoryRequestPageProvider.notifier).setPage(page);
-              },
+              onPageChanged: onPageChanged ?? (_) {},
             ),
         ],
       ),
