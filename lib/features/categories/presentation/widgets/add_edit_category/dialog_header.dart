@@ -3,9 +3,9 @@ import 'package:go_router/go_router.dart';
 import 'package:serviko_admin/core/constants/app_colors.dart';
 
 class DialogHeader extends StatelessWidget {
-  final bool isEditing;
+  const DialogHeader({super.key, required this.title});
 
-  const DialogHeader({super.key, required this.isEditing});
+  final String title;
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +13,7 @@ class DialogHeader extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          isEditing ? 'Edit Category' : 'Add New Category',
+          title,
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,

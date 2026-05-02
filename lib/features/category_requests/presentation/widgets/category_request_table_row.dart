@@ -4,17 +4,16 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/theme/text_styles.dart';
 import '../../domain/entities/category_request_entity.dart';
-import '../../domain/entities/category_request_status.dart';
-import '../providers/category_request_provider.dart';
-import 'category_request_action_button.dart';
 import 'category_request_status_badge.dart';
 import '../../../../core/utils/date_time_utils.dart';
 import 'category_request_details_dialog.dart';
+import '../../../../core/network/api_constants.dart';
 
 // Builds a TableRow for a Category Request
 TableRow buildCategoryRequestTableRow(
   CategoryRequestEntity request,
   WidgetRef ref,
+  BuildContext context,
 ) {
   return TableRow(
     decoration: const BoxDecoration(
@@ -22,8 +21,8 @@ TableRow buildCategoryRequestTableRow(
     ),
     children: [
       // Checkbox
-      const Padding(
-        padding: EdgeInsets.only(
+      Padding(
+        padding: const EdgeInsets.only(
           left: AppSizes.lg,
           top: AppSizes.md,
           bottom: AppSizes.md,
@@ -37,21 +36,52 @@ TableRow buildCategoryRequestTableRow(
           ),
         ),
       ),
-
-      // Provider (Avatar & Name)
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSizes.md),
-        child: Row(
+      ...[
+        // Provider (Avatar & Name)
+        Row(
           children: [
-            CircleAvatar(
-              radius: AppSizes.md,
-              // backgroundImage: NetworkImage(request.providerAvatarUrl),
-              backgroundColor: AppColors.border,
-              child: Icon(
-                Icons.person,
-                color: AppColors.textSecondary,
-                size: AppSizes.iconMd,
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.border.withValues(alpha: 0.1),
               ),
+              clipBehavior: Clip.antiAlias,
+              child:
+                  (request.providerAvatarUrl.isNotEmpty &&
+                      request.providerAvatarUrl != 'null')
+                  ? Image.network(
+                      request.providerAvatarUrl.startsWith('http')
+                          ? request.providerAvatarUrl
+                          : '${ApiConstants.baseUrl}${request.providerAvatarUrl.startsWith('/') ? '' : '/'}${request.providerAvatarUrl}',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const Center(
+                            child: Icon(
+                              Icons.person,
+                              color: AppColors.textSecondary,
+                              size: 18,
+                            ),
+                          ),
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return const Center(
+                          child: SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        );
+                      },
+                    )
+                  : const Center(
+                      child: Icon(
+                        Icons.person,
+                        color: AppColors.textSecondary,
+                        size: 18,
+                      ),
+                    ),
             ),
             const SizedBox(width: AppSizes.sm),
             Expanded(
@@ -67,148 +97,80 @@ TableRow buildCategoryRequestTableRow(
             ),
           ],
         ),
-      ),
 
-      // Requested Category
-      Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: AppSizes.md,
-          horizontal: AppSizes.sm,
-        ),
-        child: Text(
-          request.requestedCategory,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textPrimary,
-          ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ),
-
-      // Description
-      Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: AppSizes.md,
-          horizontal: AppSizes.sm,
-        ),
-        child: Text(
-          request.description,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
-          ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ),
-
-      // Submitted At
-      Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: AppSizes.md,
-          horizontal: AppSizes.sm,
-        ),
-        child: Text(
-          DateTimeUtils.formatTimeAgo(request.submittedAt),
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
-          ),
-        ),
-      ),
-
-      // Status
-      Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: AppSizes.md,
-          horizontal: AppSizes.sm,
-        ),
-        child: Align(
+        // Requested Category
+        Align(
           alignment: Alignment.centerLeft,
-          child: CategoryRequestStatusBadge(status: request.status),
-        ),
-      ),
-
-      // Actions
-      Padding(
-        padding: const EdgeInsets.only(
-          right: AppSizes.lg,
-          top: AppSizes.md,
-          bottom: AppSizes.md,
-        ),
-        child: Builder(
-          builder: (context) => _buildActions(context, request, ref),
-        ),
-      ),
-    ],
-  );
-}
-
-// Action Buttons of Each Row (Approve, Decline, View Details)
-Widget _buildActions(
-  BuildContext context,
-  CategoryRequestEntity request,
-  WidgetRef ref,
-) {
-  final isPending = request.status == CategoryRequestStatus.pending;
-  final isDeclined = request.status == CategoryRequestStatus.declined;
-
-  return Wrap(
-    alignment: WrapAlignment.end,
-    crossAxisAlignment: WrapCrossAlignment.center,
-    spacing: AppSizes.sm,
-    runSpacing: AppSizes.sm,
-    children: [
-      if (isPending) ...[
-        CategoryRequestActionButton(
-          label: 'Approve',
-          isFilled: true,
-          color: AppColors.success,
-          onTap: () => ref
-              .read(categoryRequestControllerProvider.notifier)
-              .updateStatus(request.id, CategoryRequestStatus.approved),
-        ),
-        CategoryRequestActionButton(
-          label: 'Decline',
-          isFilled: false,
-          color: AppColors.error,
-          onTap: () => ref
-              .read(categoryRequestControllerProvider.notifier)
-              .updateStatus(request.id, CategoryRequestStatus.declined),
-        ),
-      ],
-      Padding(
-        padding: const EdgeInsets.only(left: AppSizes.sm),
-        child: IconButton(
-          icon: const Icon(
-            Icons.remove_red_eye,
-            color: AppColors.textHint,
-            size: AppSizes.iconMd,
+          child: Text(
+            request.requestedCategory,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textPrimary,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (context) =>
-                  CategoryRequestDetailsDialog(request: request),
-            );
-          },
         ),
-      ),
-      // Reconsider Button for Declined Requests
-      if (isDeclined)
-        InkWell(
-          onTap: () => ref
-              .read(categoryRequestControllerProvider.notifier)
-              .updateStatus(request.id, CategoryRequestStatus.pending),
-          child: Padding(
-            padding: const EdgeInsets.only(left: AppSizes.sm),
-            child: Text(
-              'Reconsider',
-              style: AppTextStyles.labelMedium.copyWith(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w500,
-              ),
+
+        // Description
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            request.description,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+
+        // Submitted At
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            DateTimeUtils.formatTimeAgo(request.submittedAt),
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
             ),
           ),
         ),
+
+        // Status
+        Align(
+          alignment: Alignment.centerLeft,
+          child: CategoryRequestStatusBadge(status: request.status),
+        ),
+
+        // Actions
+        Align(
+          alignment: Alignment.center,
+          child: IconButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) =>
+                    CategoryRequestDetailsDialog(request: request),
+              );
+            },
+            icon: const Icon(
+              Icons.remove_red_eye,
+              color: AppColors.primary,
+              size: 20,
+            ),
+            tooltip: 'View Details',
+            constraints: const BoxConstraints(),
+            padding: EdgeInsets.zero,
+          ),
+        ),
+      ].map(
+        (child) => Padding(
+          padding: const EdgeInsets.symmetric(
+            vertical: AppSizes.md,
+            horizontal: AppSizes.md,
+          ),
+          child: child,
+        ),
+      ),
     ],
   );
 }

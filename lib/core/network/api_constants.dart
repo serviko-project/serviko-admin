@@ -5,5 +5,6 @@ abstract final class ApiConstants {
 
   // Endpoints
   static const String categories = '/api/v1/categories';
+  static const String categoryRequests = '/api/v1/category-requests';
   static const String providers = '/api/v1/providers';
 }

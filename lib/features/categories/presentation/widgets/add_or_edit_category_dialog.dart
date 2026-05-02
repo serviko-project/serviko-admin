@@ -7,6 +7,8 @@ import '../../../../core/utils/icon_mapper.dart';
 import '../../domain/entities/category_entity.dart';
 import '../../domain/entities/category_status.dart';
 import '../providers/categories_provider.dart';
+import '../../../category_requests/domain/entities/category_request_entity.dart';
+import '../../../category_requests/presentation/providers/category_request_provider.dart';
 import 'add_edit_category/action_buttons_section.dart';
 import 'add_edit_category/category_field_section.dart';
 import 'add_edit_category/dialog_header.dart';
@@ -15,9 +17,14 @@ import 'add_edit_category/status_section.dart';
 
 // Dialog for adding or editing a category
 class AddorEditCategoryDialog extends ConsumerStatefulWidget {
-  const AddorEditCategoryDialog({super.key, this.categoryToEdit});
+  const AddorEditCategoryDialog({
+    super.key,
+    this.categoryToEdit,
+    this.categoryRequest,
+  });
 
   final CategoryEntity? categoryToEdit;
+  final CategoryRequestEntity? categoryRequest;
 
   @override
   ConsumerState<AddorEditCategoryDialog> createState() =>
@@ -57,7 +64,10 @@ class _AddorEditCategoryDialogState
     }
 
     _titleController = TextEditingController(
-      text: widget.categoryToEdit?.title ?? '',
+      text:
+          widget.categoryToEdit?.title ??
+          widget.categoryRequest?.requestedCategory ??
+          '',
     );
     _statusNotifier = ValueNotifier(
       widget.categoryToEdit?.status ?? CategoryStatus.active,
@@ -94,6 +104,18 @@ class _AddorEditCategoryDialogState
         iconName: iconName,
         status: _statusNotifier.value,
       );
+    } else if (widget.categoryRequest != null) {
+      final requestNotifier = ref.read(
+        categoryRequestControllerProvider.notifier,
+      );
+      await requestNotifier.approveRequest(
+        widget.categoryRequest!.id,
+        iconName,
+        title: _titleController.text.trim(),
+        status: _statusNotifier.value.name,
+      );
+      final requestState = ref.read(categoryRequestControllerProvider);
+      success = !requestState.hasError;
     } else {
       success = await notifier.createCategory(
         title: _titleController.text.trim(),
@@ -113,6 +135,8 @@ class _AddorEditCategoryDialogState
           content: Text(
             isEditing
                 ? 'Category updated successfully'
+                : widget.categoryRequest != null
+                ? 'Category request approved successfully'
                 : 'Category created successfully',
           ),
           backgroundColor: AppColors.success,
@@ -125,6 +149,8 @@ class _AddorEditCategoryDialogState
           content: Text(
             isEditing
                 ? 'Failed to update category'
+                : widget.categoryRequest != null
+                ? 'Failed to approve category request'
                 : 'Failed to create category',
           ),
           backgroundColor: AppColors.error,
@@ -151,7 +177,13 @@ class _AddorEditCategoryDialogState
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              DialogHeader(isEditing: isEditing),
+              DialogHeader(
+                title: isEditing
+                    ? 'Edit Category'
+                    : widget.categoryRequest != null
+                    ? 'Approve Category'
+                    : 'Add New Category',
+              ),
               const Divider(height: 32, color: AppColors.border),
               CategoryFieldSection(titleController: _titleController),
               const SizedBox(height: 24),

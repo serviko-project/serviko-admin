@@ -96,12 +96,9 @@ class SidebarMenu extends ConsumerWidget {
                     final countsAsync = ref.watch(
                       categoryRequestCountsProvider,
                     );
+                    final counts = countsAsync.value;
                     final pendingCount =
-                        countsAsync.whenOrNull(
-                          data: (counts) =>
-                              counts[CategoryRequestStatus.pending],
-                        ) ??
-                        0;
+                        counts?[CategoryRequestStatus.pending] ?? 0;
 
                     return MenuTile(
                       icon: Icons.assignment_outlined,

@@ -1,3 +1,4 @@
+import '../../../../core/network/pagination_meta.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/category_request_entity.dart';
 import '../../domain/entities/category_request_status.dart';
@@ -20,7 +21,7 @@ final categoryRequestRepositoryProvider = Provider<CategoryRequestRepository>((
   return CategoryRequestRepositoryImpl(datasource);
 });
 
-// Ctegory Request Status Filter Provider
+// Status filter
 class CategoryRequestStatusFilterNotifier
     extends Notifier<CategoryRequestStatus?> {
   @override
@@ -29,6 +30,7 @@ class CategoryRequestStatusFilterNotifier
   void setFilter(CategoryRequestStatus? status) {
     if (state != status) {
       state = status;
+      ref.read(categoryRequestPageProvider.notifier).setPage(1);
     }
   }
 }
@@ -41,7 +43,7 @@ final categoryRequestStatusFilterProvider =
       return CategoryRequestStatusFilterNotifier();
     });
 
-// Category Request Pagination Provider
+// Pagination
 class CategoryRequestPageNotifier extends Notifier<int> {
   @override
   int build() => 1;
@@ -56,9 +58,9 @@ final categoryRequestPageProvider =
       return CategoryRequestPageNotifier();
     });
 
-// Provider that listens to both status and page and fetches accordingly
+// List provider — fetches from API with status filter and page
 final categoryRequestsListProvider =
-    FutureProvider<List<CategoryRequestEntity>>((ref) async {
+    FutureProvider<(List<CategoryRequestEntity>, PaginationMeta)>((ref) async {
       final repository = ref.watch(categoryRequestRepositoryProvider);
       final status = ref.watch(categoryRequestStatusFilterProvider);
       final page = ref.watch(categoryRequestPageProvider);
@@ -70,53 +72,79 @@ final categoryRequestsListProvider =
       );
     });
 
-// Category Request Counts Provider
+// Counts provider
+class CategoryRequestCountsNotifier
+    extends AsyncNotifier<Map<CategoryRequestStatus, int>> {
+  @override
+  Future<Map<CategoryRequestStatus, int>> build() async {
+    final repository = ref.watch(categoryRequestRepositoryProvider);
+    ref.watch(categoryRequestsListProvider);
+    return repository.getRequestCounts();
+  }
+
+  Future<void> refreshCounts() async {
+    state = await AsyncValue.guard(() async {
+      final repository = ref.read(categoryRequestRepositoryProvider);
+      return repository.getRequestCounts();
+    });
+  }
+}
+
 final categoryRequestCountsProvider =
-    FutureProvider<Map<CategoryRequestStatus, int>>((ref) async {
-      final repository = ref.watch(categoryRequestRepositoryProvider);
-
-      final allItems = await repository.getCategoryRequests(
-        page: 1,
-        limit: 1000,
-      );
-
-      int pending = 0;
-      int approved = 0;
-      int declined = 0;
-
-      for (var item in allItems) {
-        if (item.status == CategoryRequestStatus.pending) {
-          pending++;
-        } else if (item.status == CategoryRequestStatus.approved) {
-          approved++;
-        } else if (item.status == CategoryRequestStatus.declined) {
-          declined++;
-        }
-      }
-
-      return {
-        CategoryRequestStatus.pending: pending,
-        CategoryRequestStatus.approved: approved,
-        CategoryRequestStatus.declined: declined,
-      };
+    AsyncNotifierProvider<
+      CategoryRequestCountsNotifier,
+      Map<CategoryRequestStatus, int>
+    >(() {
+      return CategoryRequestCountsNotifier();
     });
 
-// For updating request status
+// Controller for approve/decline actions
 class CategoryRequestController extends Notifier<AsyncValue<void>> {
   @override
   AsyncValue<void> build() => const AsyncData(null);
 
-  Future<void> updateStatus(
+  // Approve with icon for category creation
+  Future<void> approveRequest(
     String requestId,
-    CategoryRequestStatus newStatus,
-  ) async {
+    String icon, {
+    String? title,
+    String? status,
+  }) async {
     state = const AsyncLoading();
     try {
       final repository = ref.read(categoryRequestRepositoryProvider);
-      await repository.updateRequestStatus(requestId, newStatus);
+      await repository.approveRequest(
+        requestId,
+        icon,
+        title: title,
+        status: status,
+      );
 
+      // Invalidate list
       ref.invalidate(categoryRequestsListProvider);
-      ref.invalidate(categoryRequestCountsProvider);
+
+      // Refresh counts
+      await ref.read(categoryRequestCountsProvider.notifier).refreshCounts();
+
+      state = const AsyncData(null);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+    }
+  }
+
+  // Decline with admin note
+  Future<void> declineRequest(String requestId, String adminNote) async {
+    state = const AsyncLoading();
+    try {
+      final repository = ref.read(categoryRequestRepositoryProvider);
+      await repository.declineRequest(requestId, adminNote);
+
+      // Invalidate list
+      ref.invalidate(categoryRequestsListProvider);
+
+      // Refresh counts
+      await ref.read(categoryRequestCountsProvider.notifier).refreshCounts();
+
       state = const AsyncData(null);
     } catch (e, st) {
       state = AsyncError(e, st);
