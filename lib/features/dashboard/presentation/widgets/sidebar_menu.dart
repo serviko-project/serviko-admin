@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:serviko_admin/core/constants/app_colors.dart';
 import 'package:serviko_admin/core/constants/app_sizes.dart';
 import 'package:serviko_admin/core/theme/text_styles.dart';
+import 'package:serviko_admin/features/dashboard/presentation/widgets/logout_button.dart';
 import '../../../../features/category_requests/domain/entities/category_request_status.dart';
 import '../../../../features/category_requests/presentation/providers/category_request_provider.dart';
 import 'components/menu_tile.dart';
@@ -11,6 +12,14 @@ import 'components/menu_tile.dart';
 // Sidebar Menu Widget
 class SidebarMenu extends ConsumerWidget {
   const SidebarMenu({super.key});
+
+  void _handleNavigation(BuildContext context, String routeName) {
+    context.goNamed(routeName);
+    // Close sidebar on small screens after navigation
+    if (MediaQuery.of(context).size.width < 900) {
+      Navigator.pop(context);
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -71,7 +80,7 @@ class SidebarMenu extends ConsumerWidget {
                   icon: Icons.dashboard_outlined,
                   title: 'Dashboard',
                   isActive: currentLocation.startsWith('/dashboard'),
-                  onTap: () => context.goNamed('dashboard'),
+                  onTap: () => _handleNavigation(context, 'dashboard'),
                 ),
 
                 // Providers Menu Item
@@ -79,7 +88,7 @@ class SidebarMenu extends ConsumerWidget {
                   icon: Icons.people_outline,
                   title: 'Providers',
                   isActive: currentLocation.startsWith('/providers'),
-                  onTap: () => context.goNamed('providers'),
+                  onTap: () => _handleNavigation(context, 'providers'),
                 ),
 
                 // Categories Menu Item
@@ -87,7 +96,7 @@ class SidebarMenu extends ConsumerWidget {
                   icon: Icons.category_outlined,
                   title: 'Categories',
                   isActive: currentLocation.startsWith('/categories'),
-                  onTap: () => context.goNamed('categories'),
+                  onTap: () => _handleNavigation(context, 'categories'),
                 ),
 
                 // Category Requests Menu Item
@@ -106,7 +115,8 @@ class SidebarMenu extends ConsumerWidget {
                       isActive: currentLocation.startsWith(
                         '/category-requests',
                       ),
-                      onTap: () => context.goNamed('category-requests'),
+                      onTap: () =>
+                          _handleNavigation(context, 'category-requests'),
                       badgeCount: pendingCount > 0 ? pendingCount : null,
                     );
                   },
@@ -151,7 +161,8 @@ class SidebarMenu extends ConsumerWidget {
                     ],
                   ),
                 ),
-                const Icon(Icons.settings, color: Colors.white54, size: 20),
+                // Logout Button
+                LogoutButton(),
               ],
             ),
           ),
