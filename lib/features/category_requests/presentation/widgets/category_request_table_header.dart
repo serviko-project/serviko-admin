@@ -4,18 +4,25 @@ import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/theme/text_styles.dart';
 
 TableRow buildCategoryRequestTableHeader() {
-  // Header Cell
-  Widget buildHeaderCell(String text) {
+  Widget buildHeaderCell(
+    String text, {
+    double? width,
+    bool isCentered = false,
+  }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSizes.md),
+      padding: const EdgeInsets.symmetric(
+        vertical: AppSizes.md,
+        horizontal: AppSizes.md,
+      ),
       child: Align(
-        alignment: text == 'ACTIONS' ? Alignment.center : Alignment.centerLeft,
+        alignment: isCentered ? Alignment.center : Alignment.centerLeft,
         child: Text(
           text,
-          textAlign: text == 'ACTIONS' ? TextAlign.center : TextAlign.left,
+          textAlign: isCentered ? TextAlign.center : TextAlign.left,
           style: AppTextStyles.caption.copyWith(
             color: AppColors.textSecondary,
             fontWeight: FontWeight.w700,
+            fontSize: 10,
             letterSpacing: 0.5,
           ),
         ),
@@ -50,7 +57,7 @@ TableRow buildCategoryRequestTableHeader() {
       buildHeaderCell('DESCRIPTION'),
       buildHeaderCell('SUBMITTED'),
       buildHeaderCell('STATUS'),
-      buildHeaderCell('ACTIONS'),
+      buildHeaderCell('ACTIONS', isCentered: true),
     ],
   );
 }

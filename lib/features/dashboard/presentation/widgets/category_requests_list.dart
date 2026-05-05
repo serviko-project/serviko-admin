@@ -1,15 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:serviko_admin/core/constants/app_colors.dart';
 import 'package:serviko_admin/core/constants/app_sizes.dart';
 import 'package:serviko_admin/core/theme/text_styles.dart';
+import 'package:serviko_admin/core/utils/date_time_utils.dart';
+import 'package:serviko_admin/features/category_requests/domain/entities/category_request_status.dart';
+import 'package:serviko_admin/features/category_requests/presentation/providers/category_request_provider.dart';
 import 'components/request_card.dart';
 
 // Category Requests List Widget
-class CategoryRequestsList extends StatelessWidget {
+class CategoryRequestsList extends ConsumerWidget {
   const CategoryRequestsList({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final recentRequestsAsync = ref.watch(recentCategoryRequestsProvider);
+    final requestCountsAsync = ref.watch(categoryRequestCountsProvider);
+
+    final pendingCount = requestCountsAsync.when(
+      data: (counts) => counts[CategoryRequestStatus.pending] ?? 0,
+      loading: () => 0,
+      error: (_, _) => 0,
+    );
+
     return Container(
       padding: const EdgeInsets.all(AppSizes.xl),
       decoration: BoxDecoration(
@@ -39,9 +53,9 @@ class CategoryRequestsList extends StatelessWidget {
                   color: Colors.purple,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text(
-                  '3 PENDING',
-                  style: TextStyle(
+                child: Text(
+                  '$pendingCount PENDING',
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
@@ -53,50 +67,78 @@ class CategoryRequestsList extends StatelessWidget {
           const SizedBox(height: AppSizes.lg),
 
           // List of Request Cards
-          LayoutBuilder(
-            builder: (context, constraints) {
-              const cards = [
-                RequestCard(
-                  title: 'Smart Home Installation',
-                  requester: 'TechNova Inc.',
-                  date: 'Oct 24, 2025',
-                ),
-                RequestCard(
-                  title: 'Eco-Friendly Cleaning',
-                  requester: 'GreenWay Pros',
-                  date: 'Oct 23, 2025',
-                ),
-                RequestCard(
-                  title: 'Pet Grooming (Mobile)',
-                  requester: 'Bark & Bubbles',
-                  date: 'Oct 22, 2025',
-                ),
-              ];
-
-              // Two-column layout for wider screens
-              if (constraints.maxWidth >= 600) {
-                final cardWidth = ((constraints.maxWidth - AppSizes.md) / 2)
-                    .floorToDouble();
-                return Wrap(
-                  spacing: AppSizes.md,
-                  runSpacing: AppSizes.md,
-                  children: cards
-                      .map((card) => SizedBox(width: cardWidth, child: card))
-                      .toList(),
+          recentRequestsAsync.when(
+            data: (requests) {
+              if (requests.isEmpty) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(AppSizes.xl),
+                    child: Text(
+                      'No pending category requests',
+                      style: TextStyle(color: AppColors.textSecondary),
+                    ),
+                  ),
                 );
               }
 
-              // Normal single column layout
-              return Column(
-                children: [
-                  cards[0],
-                  const SizedBox(height: AppSizes.md),
-                  cards[1],
-                  const SizedBox(height: AppSizes.md),
-                  cards[2],
-                ],
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  final cards = requests.map((request) {
+                    final date = request.submittedAt;
+                    final formattedDate =
+                        '${DateTimeUtils.getMonthName(date.month)} ${date.day}, ${date.year}';
+
+                    return RequestCard(
+                      title: request.requestedCategory,
+                      requester: request.providerName,
+                      date: formattedDate,
+                      onView: () => context.go('/category-requests'),
+                    );
+                  }).toList();
+
+                  // Two-column layout for wider screens
+                  if (constraints.maxWidth >= 600) {
+                    final cardWidth = ((constraints.maxWidth - AppSizes.md) / 2)
+                        .floorToDouble();
+                    return Wrap(
+                      spacing: AppSizes.md,
+                      runSpacing: AppSizes.md,
+                      children: cards
+                          .map(
+                            (card) => SizedBox(width: cardWidth, child: card),
+                          )
+                          .toList(),
+                    );
+                  }
+
+                  // Normal single column layout
+                  return Column(
+                    children: [
+                      for (int i = 0; i < cards.length; i++) ...[
+                        cards[i],
+                        if (i < cards.length - 1)
+                          const SizedBox(height: AppSizes.md),
+                      ],
+                    ],
+                  );
+                },
               );
             },
+            loading: () => const Center(
+              child: Padding(
+                padding: EdgeInsets.all(AppSizes.xl),
+                child: CircularProgressIndicator(),
+              ),
+            ),
+            error: (error, _) => const Center(
+              child: Padding(
+                padding: EdgeInsets.all(AppSizes.xl),
+                child: Text(
+                  'Error loading requests',
+                  style: TextStyle(color: AppColors.error),
+                ),
+              ),
+            ),
           ),
         ],
       ),

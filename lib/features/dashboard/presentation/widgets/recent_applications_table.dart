@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:serviko_admin/core/constants/app_colors.dart';
 import 'package:serviko_admin/core/constants/app_sizes.dart';
 import 'package:serviko_admin/core/theme/text_styles.dart';
-import 'action_cell.dart';
-import 'provider_cell.dart';
-import 'status_badge.dart';
+import 'package:serviko_admin/features/dashboard/presentation/widgets/components/table_header_row.dart';
+import 'package:serviko_admin/features/dashboard/presentation/widgets/components/table_row.dart';
+import 'package:serviko_admin/features/providers/presentation/providers/providers_provider.dart';
 
 // Recent Applications Table Widget
-class RecentApplicationsTable extends StatelessWidget {
+class RecentApplicationsTable extends ConsumerWidget {
   const RecentApplicationsTable({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final recentProvidersAsync = ref.watch(recentProvidersProvider);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSizes.xl),
@@ -36,149 +40,111 @@ class RecentApplicationsTable extends StatelessWidget {
                 'Recent Provider Applications',
                 style: AppTextStyles.h3.copyWith(fontWeight: FontWeight.bold),
               ),
-              TextButton(onPressed: () {}, child: const Text('View All')),
+              TextButton(
+                onPressed: () => context.go('/providers'),
+                child: const Text('View All'),
+              ),
             ],
           ),
           const SizedBox(height: AppSizes.lg),
-          Table(
-            columnWidths: const {
-              0: FlexColumnWidth(4),
-              1: FlexColumnWidth(3),
-              2: FlexColumnWidth(2),
-              3: FlexColumnWidth(2),
+          recentProvidersAsync.when(
+            data: (providers) {
+              if (providers.isEmpty) {
+                return Column(
+                  children: [
+                    Table(
+                      columnWidths: const {
+                        0: FlexColumnWidth(4),
+                        1: FlexColumnWidth(3),
+                        2: FlexColumnWidth(2),
+                        3: FlexColumnWidth(2),
+                      },
+                      children: [buildHeaderRow()],
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.all(AppSizes.xl * 2),
+                      child: Center(
+                        child: Text(
+                          'No recent applications',
+                          style: TextStyle(color: AppColors.textSecondary),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }
+
+              return Table(
+                columnWidths: const {
+                  0: FlexColumnWidth(4),
+                  1: FlexColumnWidth(3),
+                  2: FlexColumnWidth(2),
+                  3: FlexColumnWidth(2),
+                },
+                defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                children: [
+                  buildHeaderRow(),
+                  ...providers.map((provider) {
+                    return buildTableRow(
+                      context: context,
+                      id: provider.id,
+                      name: provider.userName,
+                      email: provider.email ?? 'No email',
+                      initials: provider.userName.isNotEmpty
+                          ? provider.userName.substring(0, 1).toUpperCase()
+                          : '?',
+                      profileImageUrl: provider.profileImageUrl,
+                      title: provider.professionalTitle?.isNotEmpty == true
+                          ? provider.professionalTitle!
+                          : 'N/A',
+                      status: provider.status,
+                    );
+                  }),
+                ],
+              );
             },
-            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-            children: [
-              TableRow(
-                decoration: const BoxDecoration(
-                  color: AppColors.surface,
-                  border: Border(
-                    bottom: BorderSide(color: Color(0xFFF3F4F6), width: 1.0),
+            loading: () => Column(
+              children: [
+                Table(
+                  columnWidths: const {
+                    0: FlexColumnWidth(4),
+                    1: FlexColumnWidth(3),
+                    2: FlexColumnWidth(2),
+                    3: FlexColumnWidth(2),
+                  },
+                  children: [buildHeaderRow()],
+                ),
+                const Padding(
+                  padding: EdgeInsets.all(AppSizes.xl * 2),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+              ],
+            ),
+            error: (error, _) => Column(
+              children: [
+                Table(
+                  columnWidths: const {
+                    0: FlexColumnWidth(4),
+                    1: FlexColumnWidth(3),
+                    2: FlexColumnWidth(2),
+                    3: FlexColumnWidth(2),
+                  },
+                  children: [buildHeaderRow()],
+                ),
+                const Padding(
+                  padding: EdgeInsets.all(AppSizes.xl),
+                  child: Center(
+                    child: Text(
+                      'Error loading providers',
+                      style: TextStyle(color: AppColors.error),
+                    ),
                   ),
                 ),
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      left: 24.0,
-                      top: 16.0,
-                      bottom: 16.0,
-                    ),
-                    child: Text(
-                      'PROVIDER',
-                      style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16.0),
-                    child: Center(
-                      child: Text(
-                        'SERVICE TYPE',
-                        style: AppTextStyles.labelSmall.copyWith(
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16.0),
-                    child: Center(
-                      child: Text(
-                        'STATUS',
-                        style: AppTextStyles.labelSmall.copyWith(
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16.0),
-                    child: Center(
-                      child: Text(
-                        'ACTION',
-                        style: AppTextStyles.labelSmall.copyWith(
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              // sample Data
-              _buildTableRow(
-                name: 'User 1',
-                email: 'user1@example.com',
-                initials: 'AA',
-                service: 'Plumbing Services',
-                status: 'PENDING',
-              ),
-              _buildTableRow(
-                name: 'User 2',
-                email: 'user2@example.com',
-                initials: 'SK',
-                service: 'Interior Design',
-                status: 'APPROVED',
-              ),
-              _buildTableRow(
-                name: 'User 3',
-                email: 'user3@example.com',
-                initials: 'RM',
-                service: 'Electrician',
-                status: 'PENDING',
-              ),
-              _buildTableRow(
-                name: 'User 4',
-                email: 'user4@example.com',
-                initials: 'JD',
-                service: 'Plumber',
-                status: 'BLOCKED',
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
-    );
-  }
-
-  TableRow _buildTableRow({
-    required String name,
-    required String email,
-    required String initials,
-    required String service,
-    required String status,
-  }) {
-    return TableRow(
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Color(0xFFF3F4F6), width: 0.5),
-        ),
-      ),
-      children: [
-        // Provider Cell
-        Padding(
-          padding: const EdgeInsets.only(left: 24.0, top: 12.0, bottom: 12.0),
-          child: ProviderCell(name: name, email: email, initials: initials),
-        ),
-
-        // Service Name
-        Center(child: Text(service, style: const TextStyle(fontSize: 12))),
-
-        // Status Badge
-        Center(child: StatusBadge(status: status)),
-
-        // Action Cell
-        const Center(child: ActionCell()),
-      ],
     );
   }
 }

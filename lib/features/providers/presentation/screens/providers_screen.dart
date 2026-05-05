@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:serviko_admin/features/providers/presentation/widgets/provider_error_widget.dart';
 import '../providers/providers_provider.dart';
 import '../widgets/providers_header.dart';
 import '../widgets/providers_list_container.dart';
@@ -33,39 +34,35 @@ class ProvidersScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Header (Search, Filters, Export Button)
                 const ProvidersHeader(),
-
-                // Tab bar for filtering by status
                 const ProvidersTabBar(),
-
                 const SizedBox(height: 16),
 
-                // Table Content Area
+                // Table Content
                 Padding(
                   padding: const EdgeInsets.all(24.0),
                   child: providersAsync.when(
-                    data: (providers) =>
-                        ProvidersListContainer(providers: providers),
-
+                    data: (result) {
+                      final (providers, meta) = result;
+                      return ProvidersListContainer(
+                        providers: providers,
+                        meta: meta,
+                        onPageChanged: (page) {
+                          final notifier = ref.read(
+                            providerPageProvider.notifier,
+                          );
+                          notifier.setPage(page);
+                        },
+                      );
+                    },
                     // Loading State
                     loading: () => const ProvidersListContainer(
                       providers: [],
                       isLoading: true,
                     ),
-
                     // Error State
-                    error: (error, stack) => Align(
-                      alignment: Alignment.center,
-                      heightFactor: 1.0,
-                      child: Padding(
-                        padding: const EdgeInsets.all(48.0),
-                        child: Text(
-                          'Error loading providers: $error',
-                          style: const TextStyle(color: Colors.red),
-                        ),
-                      ),
-                    ),
+                    error: (error, stack) =>
+                        ProviderErrorWidget(error: error.toString()),
                   ),
                 ),
               ],

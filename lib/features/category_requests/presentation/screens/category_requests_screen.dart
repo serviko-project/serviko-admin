@@ -7,11 +7,26 @@ import '../widgets/category_requests_list_container.dart';
 import '../widgets/category_requests_status_tabs.dart';
 
 // Category Requests Screen
-class CategoryRequestsScreen extends ConsumerWidget {
+class CategoryRequestsScreen extends ConsumerStatefulWidget {
   const CategoryRequestsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CategoryRequestsScreen> createState() =>
+      _CategoryRequestsScreenState();
+}
+
+class _CategoryRequestsScreenState
+    extends ConsumerState<CategoryRequestsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      ref.invalidate(categoryRequestCountsProvider);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final requestsAsync = ref.watch(categoryRequestsListProvider);
 
     return Scaffold(
@@ -28,14 +43,18 @@ class CategoryRequestsScreen extends ConsumerWidget {
 
             // Category Requests Table
             requestsAsync.when(
-              data: (requests) =>
-                  CategoryRequestsListContainer(requests: requests, ref: ref),
+              data: (data) => CategoryRequestsListContainer(
+                requests: data.$1,
+                meta: data.$2,
+                onPageChanged: (page) {
+                  ref.read(categoryRequestPageProvider.notifier).setPage(page);
+                },
+              ),
 
               // Loading State
-              loading: () => CategoryRequestsListContainer(
-                requests: const [],
+              loading: () => const CategoryRequestsListContainer(
+                requests: [],
                 isLoading: true,
-                ref: ref,
               ),
 
               // Error State

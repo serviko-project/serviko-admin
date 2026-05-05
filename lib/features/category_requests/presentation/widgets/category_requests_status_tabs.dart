@@ -16,6 +16,7 @@ class CategoryRequestsStatusTabs extends ConsumerWidget {
     final currentStatus = ref.watch(categoryRequestStatusFilterProvider);
 
     return countsAsync.when(
+      skipLoadingOnReload: true,
       data: (counts) {
         final total = counts.values.fold<int>(0, (sum, val) => sum + val);
         return SingleChildScrollView(
@@ -41,7 +42,7 @@ class CategoryRequestsStatusTabs extends ConsumerWidget {
                 ref,
                 status: CategoryRequestStatus.pending,
                 currentStatus: currentStatus,
-                label: '${counts[CategoryRequestStatus.pending]} Pending',
+                label: '${counts[CategoryRequestStatus.pending] ?? 0} Pending',
                 color: AppColors.warning,
                 backgroundColor: AppColors.warning.withValues(alpha: 0.1),
                 icon: Icons.schedule,
@@ -54,7 +55,8 @@ class CategoryRequestsStatusTabs extends ConsumerWidget {
                 ref,
                 status: CategoryRequestStatus.approved,
                 currentStatus: currentStatus,
-                label: '${counts[CategoryRequestStatus.approved]} Approved',
+                label:
+                    '${counts[CategoryRequestStatus.approved] ?? 0} Approved',
                 color: AppColors.primary,
                 backgroundColor: AppColors.primary.withValues(alpha: 0.1),
                 icon: Icons.check_circle,
@@ -67,7 +69,8 @@ class CategoryRequestsStatusTabs extends ConsumerWidget {
                 ref,
                 status: CategoryRequestStatus.declined,
                 currentStatus: currentStatus,
-                label: '${counts[CategoryRequestStatus.declined]} Declined',
+                label:
+                    '${counts[CategoryRequestStatus.declined] ?? 0} Declined',
                 color: AppColors.error,
                 backgroundColor: AppColors.error.withValues(alpha: 0.1),
                 icon: Icons.cancel,
@@ -114,9 +117,8 @@ class CategoryRequestsStatusTabs extends ConsumerWidget {
 
     return InkWell(
       onTap: () {
-        ref
-            .read(categoryRequestStatusFilterProvider.notifier)
-            .setFilter(status);
+        final notifier = ref.read(categoryRequestStatusFilterProvider.notifier);
+        notifier.setFilter(status);
       },
       borderRadius: BorderRadius.circular(AppSizes.radiusXl),
       child: Container(

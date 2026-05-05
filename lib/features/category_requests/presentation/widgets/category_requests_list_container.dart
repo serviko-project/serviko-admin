@@ -2,26 +2,29 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/theme/text_styles.dart';
+import '../../../../core/network/pagination_meta.dart';
 import '../../domain/entities/category_request_entity.dart';
 import 'category_request_table_header.dart';
 import 'category_request_table_row.dart';
 import '../../../providers/presentation/widgets/providers_pagination_bar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class CategoryRequestsListContainer extends StatelessWidget {
+class CategoryRequestsListContainer extends ConsumerWidget {
   final bool isLoading;
-  final WidgetRef ref;
   final List<CategoryRequestEntity> requests;
+  final PaginationMeta? meta;
+  final ValueChanged<int>? onPageChanged;
 
   const CategoryRequestsListContainer({
     super.key,
     required this.requests,
+    this.meta,
     this.isLoading = false,
-    required this.ref,
+    this.onPageChanged,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -51,12 +54,12 @@ class CategoryRequestsListContainer extends StatelessWidget {
                     child: Table(
                       columnWidths: const {
                         0: FixedColumnWidth(72), // Checkbox
-                        1: FlexColumnWidth(2), // Provider
-                        2: FlexColumnWidth(2), // Category
-                        3: FlexColumnWidth(2.5), // Description
+                        1: FlexColumnWidth(2.5), // Provider
+                        2: FlexColumnWidth(2.5), // Category
+                        3: FlexColumnWidth(3), // Description
                         4: FlexColumnWidth(1.5), // Submitted
                         5: FlexColumnWidth(1.5), // Status
-                        6: FlexColumnWidth(3), // Actions
+                        6: FlexColumnWidth(1), // Actions
                       },
                       defaultVerticalAlignment:
                           TableCellVerticalAlignment.middle,
@@ -67,7 +70,8 @@ class CategoryRequestsListContainer extends StatelessWidget {
                         // Table Rows
                         if (!isLoading && requests.isNotEmpty)
                           ...requests.map(
-                            (r) => buildCategoryRequestTableRow(r, ref),
+                            (r) =>
+                                buildCategoryRequestTableRow(r, ref, context),
                           ),
                       ],
                     ),
@@ -87,10 +91,10 @@ class CategoryRequestsListContainer extends StatelessWidget {
           // Empty State
           else if (requests.isEmpty)
             Padding(
-              padding: const EdgeInsets.all(AppSizes.xxl),
+              padding: const EdgeInsets.all(2 * AppSizes.xl),
               child: Center(
                 child: Text(
-                  'No valid requests found.',
+                  'No requests found..!!',
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -99,12 +103,13 @@ class CategoryRequestsListContainer extends StatelessWidget {
             ),
 
           // Pagination Bar
-          ProvidersPaginationBar(
-            totalItems: 100,
-            currentPage: 1,
-            itemsPerPage: 10,
-            onPageChanged: (value) {},
-          ),
+          if (meta != null)
+            ProvidersPaginationBar(
+              totalItems: meta!.total,
+              currentPage: meta!.page,
+              itemsPerPage: meta!.limit,
+              onPageChanged: onPageChanged ?? (_) {},
+            ),
         ],
       ),
     );

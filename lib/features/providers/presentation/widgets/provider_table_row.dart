@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/date_time_utils.dart';
-import '../../domain/entities/provider_entity.dart';
+import '../../domain/entities/provider_list_item_entity.dart';
 import 'category_chip.dart';
 import 'status_badge.dart';
 
-// Builds a Provider TableRow
-TableRow buildProviderTableRow(ProviderEntity provider, BuildContext context) {
+// Builds a Provider TableRow from a list item entity
+TableRow buildProviderTableRow(
+  ProviderListItemEntity provider,
+  BuildContext context,
+) {
   void handleTap() {
     context.goNamed('provider_details', pathParameters: {'id': provider.id});
   }
@@ -33,18 +36,26 @@ TableRow buildProviderTableRow(ProviderEntity provider, BuildContext context) {
         ),
       ),
 
-      // Provider Info (Avatar, Name, Email)
+      // Provider Info (Name, Email)
       TableRowInkWell(
         onTap: handleTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12.0),
           child: Row(
             children: [
-              const CircleAvatar(
+              CircleAvatar(
                 radius: 20,
-                // backgroundImage: NetworkImage(provider.avatarUrl),
                 backgroundColor: AppColors.border,
-                child: Icon(Icons.person, color: AppColors.textHint, size: 23),
+                backgroundImage: provider.profileImageUrl != null
+                    ? NetworkImage(provider.profileImageUrl!)
+                    : null,
+                child: provider.profileImageUrl == null
+                    ? const Icon(
+                        Icons.person,
+                        color: AppColors.textHint,
+                        size: 23,
+                      )
+                    : null,
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -53,9 +64,8 @@ TableRow buildProviderTableRow(ProviderEntity provider, BuildContext context) {
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Provider Name
                     Text(
-                      provider.name,
+                      provider.userName,
                       style: const TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
@@ -65,10 +75,8 @@ TableRow buildProviderTableRow(ProviderEntity provider, BuildContext context) {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
-
-                    // Provider Email
                     Text(
-                      provider.email,
+                      provider.email ?? '',
                       style: const TextStyle(
                         fontSize: 11,
                         color: AppColors.textSecondary,
@@ -98,7 +106,6 @@ TableRow buildProviderTableRow(ProviderEntity provider, BuildContext context) {
                 ...provider.categories
                     .take(3)
                     .map((c) => CategoryChip(label: c)),
-
                 if (provider.categories.length > 3)
                   CategoryChip(
                     label: '+${provider.categories.length - 3} more',
@@ -117,69 +124,13 @@ TableRow buildProviderTableRow(ProviderEntity provider, BuildContext context) {
           child: Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              DateTimeUtils.formatDate(provider.submittedAt),
+              provider.submittedAt != null
+                  ? DateTimeUtils.formatDate(provider.submittedAt!)
+                  : '—',
               style: const TextStyle(
                 fontSize: 12,
                 color: AppColors.textSecondary,
                 height: 1.4,
-              ),
-            ),
-          ),
-        ),
-      ),
-
-      // Rating
-      TableRowInkWell(
-        onTap: handleTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12.0),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: provider.rating != null
-                ? Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.star,
-                        color: AppColors.warning,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        provider.rating.toString(),
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ],
-                  )
-                : const Text(
-                    '—',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textHint,
-                    ),
-                  ),
-          ),
-        ),
-      ),
-
-      // Jobs Count
-      TableRowInkWell(
-        onTap: handleTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12.0),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              provider.jobsCompleted.toString(),
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
               ),
             ),
           ),

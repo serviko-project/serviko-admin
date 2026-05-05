@@ -3,6 +3,9 @@ import 'package:serviko_admin/core/utils/date_time_utils.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../providers/domain/entities/provider_entity.dart';
 import '../../../../providers/domain/entities/provider_status.dart';
+import 'profile_card/provider_avatar.dart';
+import 'profile_card/provider_contact_chip.dart';
+import 'profile_card/provider_status_badge.dart';
 import 'provider_details_card.dart';
 
 class ProviderProfileCard extends StatelessWidget {
@@ -12,27 +15,7 @@ class ProviderProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color statusColor;
-    IconData statusIcon;
-    String statusText;
-
-    switch (provider.status) {
-      case ProviderStatus.active:
-        statusColor = AppColors.success;
-        statusIcon = Icons.check_circle;
-        statusText = 'ACTIVE';
-        break;
-      case ProviderStatus.pending:
-        statusColor = AppColors.warning;
-        statusIcon = Icons.access_time_filled;
-        statusText = 'PENDING APPROVAL';
-        break;
-      case ProviderStatus.blocked:
-        statusColor = AppColors.error;
-        statusIcon = Icons.cancel;
-        statusText = 'BLOCKED';
-        break;
-    }
+    final (statusColor, statusIcon, statusText) = _statusStyle(provider.status);
 
     return ProviderDetailsCard(
       padding: EdgeInsets.zero,
@@ -45,7 +28,7 @@ class ProviderProfileCard extends StatelessWidget {
               // Left Accent Line
               Container(
                 width: 6,
-                color: provider.status == ProviderStatus.active
+                color: provider.status == ProviderStatus.approved
                     ? AppColors.primary
                     : statusColor,
               ),
@@ -59,7 +42,10 @@ class ProviderProfileCard extends StatelessWidget {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildAvatar(),
+                          ProviderAvatar(
+                            avatarUrl: provider.avatarUrl,
+                            status: provider.status,
+                          ),
                           const SizedBox(width: 24),
                           Expanded(
                             child: Column(
@@ -90,10 +76,10 @@ class ProviderProfileCard extends StatelessWidget {
                               ],
                             ),
                           ),
-                          _buildStatusBadge(
-                            statusText,
-                            statusColor,
-                            statusIcon,
+                          ProviderStatusBadge(
+                            text: statusText,
+                            color: statusColor,
+                            icon: statusIcon,
                           ),
                         ],
                       ),
@@ -107,23 +93,24 @@ class ProviderProfileCard extends StatelessWidget {
                         runSpacing: 12,
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          _buildContactChip(
-                            Icons.phone_outlined,
-                            provider.phoneNumber,
+                          ProviderContactChip(
+                            icon: Icons.phone_outlined,
+                            text: provider.phoneNumber,
                           ),
-                          _buildContactChip(
-                            Icons.email_outlined,
-                            provider.email,
+                          ProviderContactChip(
+                            icon: Icons.email_outlined,
+                            text: provider.email,
                           ),
                           const SizedBox(width: 8),
-                          Text(
-                            'Member since ${DateTimeUtils.formatDate(provider.submittedAt)}',
-                            style: const TextStyle(
-                              color: AppColors.textHint,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
+                          if (provider.submittedAt != null)
+                            Text(
+                              'Member since ${DateTimeUtils.formatDate(provider.submittedAt!)}',
+                              style: const TextStyle(
+                                color: AppColors.textHint,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                          ),
                         ],
                       ),
                     ],
@@ -137,119 +124,12 @@ class ProviderProfileCard extends StatelessWidget {
     );
   }
 
-  Widget _buildAvatar() {
-    return Stack(
-      alignment: Alignment.bottomRight,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.background,
-            border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              width: 2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.15),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: CircleAvatar(
-            radius: 40,
-            backgroundColor: AppColors.surface,
-            backgroundImage: provider.avatarUrl.isNotEmpty
-                ? NetworkImage(provider.avatarUrl)
-                : null,
-            child: provider.avatarUrl.isEmpty
-                ? const Icon(Icons.person, size: 40, color: AppColors.textHint)
-                : null,
-          ),
-        ),
-        if (provider.status == ProviderStatus.active)
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: AppColors.success,
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.background, width: 2),
-            ),
-            child: const Icon(
-              Icons.verified,
-              size: 14,
-              color: AppColors.textOnPrimary,
-            ),
-          ),
-      ],
-    );
-  }
-
   Widget _buildMetaInfoRow() {
     return Wrap(
       spacing: 16,
       runSpacing: 8,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        if (provider.rating != null && provider.rating! > 0)
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.star_rounded,
-                size: 18,
-                color: AppColors.warning,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '${provider.rating}',
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-        if (provider.locationName.isNotEmpty)
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.location_on_outlined,
-                size: 16,
-                color: AppColors.textHint,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                provider.locationName,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 13,
-                ),
-              ),
-            ],
-          ),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.work_outline_rounded,
-              size: 16,
-              color: AppColors.textHint,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              '${provider.jobsCompleted} Jobs completed',
-              style: const TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 13,
-              ),
-            ),
-          ],
-        ),
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -264,60 +144,47 @@ class ProviderProfileCard extends StatelessWidget {
             ),
           ],
         ),
+        if (provider.services.isNotEmpty)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.category_outlined,
+                size: 16,
+                color: AppColors.textHint,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                '${provider.services.length} Service${provider.services.length > 1 ? 's' : ''}',
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
       ],
     );
   }
 
-  Widget _buildStatusBadge(String text, Color color, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
+  (Color, IconData, String) _statusStyle(ProviderStatus status) {
+    return switch (status) {
+      ProviderStatus.approved => (
+        AppColors.success,
+        Icons.check_circle,
+        'APPROVED',
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 6),
-          Text(
-            text,
-            style: TextStyle(
-              color: color,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ],
+      ProviderStatus.pending => (
+        AppColors.warning,
+        Icons.access_time_filled,
+        'PENDING APPROVAL',
       ),
-    );
-  }
-
-  Widget _buildContactChip(IconData icon, String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.border),
+      ProviderStatus.rejected => (
+        Colors.orange.shade800,
+        Icons.cancel,
+        'REJECTED',
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: AppColors.textSecondary),
-          const SizedBox(width: 8),
-          Text(
-            text,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
+      ProviderStatus.blocked => (AppColors.error, Icons.block, 'BLOCKED'),
+    };
   }
 }

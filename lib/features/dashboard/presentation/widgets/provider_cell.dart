@@ -8,36 +8,45 @@ class ProviderCell extends StatelessWidget {
   final String name;
   final String email;
   final String initials;
+  final String? profileImageUrl;
 
   const ProviderCell({
     super.key,
     required this.name,
     required this.email,
     required this.initials,
+    this.profileImageUrl,
   });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            color: AppColors.primary.withAlpha(10),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Center(
-            child: Text(
-              initials,
-              style: const TextStyle(
-                color: AppColors.primary,
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
+        if (profileImageUrl != null && profileImageUrl!.isNotEmpty)
+          CircleAvatar(
+            radius: 20,
+            backgroundImage: NetworkImage(profileImageUrl!),
+            backgroundColor: AppColors.primary.withAlpha(10),
+          )
+        else
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withAlpha(10),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Center(
+              child: Text(
+                initials,
+                style: const TextStyle(
+                  color: AppColors.primary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
-        ),
         const SizedBox(width: AppSizes.md),
         Expanded(
           child: Column(

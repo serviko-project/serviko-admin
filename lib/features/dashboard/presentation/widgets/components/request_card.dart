@@ -8,12 +8,14 @@ class RequestCard extends StatelessWidget {
   final String title;
   final String requester;
   final String date;
+  final VoidCallback? onView;
 
   const RequestCard({
     super.key,
     required this.title,
     required this.requester,
     required this.date,
+    this.onView,
   });
 
   @override
@@ -65,44 +67,26 @@ class RequestCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSizes.md),
 
-          // Action Buttons : Approve and Decline
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    elevation: 0,
-                    textStyle: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 1.3,
-                    ),
-                  ),
-                  child: const Text('APPROVE'),
+          // Action Button: View
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: onView,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                side: const BorderSide(color: AppColors.primary),
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                textStyle: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.3,
                 ),
               ),
-              const SizedBox(width: AppSizes.sm),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () {},
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red,
-                    side: BorderSide(color: Colors.red.shade100),
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    textStyle: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 1.3,
-                    ),
-                  ),
-                  child: const Text('DECLINE'),
-                ),
+              child: const Text(
+                'VIEW REQUESTS',
+                style: TextStyle(letterSpacing: .8),
               ),
-            ],
+            ),
           ),
         ],
       ),

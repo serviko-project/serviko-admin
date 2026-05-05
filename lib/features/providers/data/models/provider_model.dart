@@ -4,98 +4,127 @@ import '../../domain/entities/provider_status.dart';
 class ProviderModel extends ProviderEntity {
   const ProviderModel({
     required super.id,
+    required super.userId,
     required super.name,
     required super.email,
     required super.phoneNumber,
     required super.professionalTitle,
     required super.yearsOfExperience,
-    required super.avatarUrl,
-    required super.categories,
-    required super.submittedAt,
-    super.actionTakenAt,
-    super.rating,
-    required super.jobsCompleted,
+    super.avatarUrl,
+    super.about,
     required super.status,
-    required super.documents,
-    required super.availability,
-    required super.locationName,
-    required super.locationRadius,
-    super.description,
+    super.rejectionReason,
+    super.submittedAt,
+    super.reviewedAt,
+    super.latitude,
+    super.longitude,
+    super.coverageRadiusKm,
+    super.services,
+    super.availability,
+    super.documents,
+    required super.createdAt,
+    required super.updatedAt,
   });
 
   factory ProviderModel.fromJson(Map<String, dynamic> json) {
     return ProviderModel(
       id: json['id'] as String,
-      name: json['name'] as String,
-      email: json['email'] as String,
-      phoneNumber: json['phoneNumber'] as String? ?? '',
-      professionalTitle: json['professionalTitle'] as String? ?? '',
-      yearsOfExperience: (json['yearsOfExperience'] as num?)?.toInt() ?? 0,
-      avatarUrl: json['avatarUrl'] as String,
-      categories: List<String>.from(json['categories'] as List),
-      submittedAt: DateTime.parse(json['submittedAt'] as String),
-      rating: json['rating'] != null
-          ? (json['rating'] as num).toDouble()
+      userId: json['user_id'] as String,
+      name: json['user_name'] as String? ?? '',
+      email: json['email'] as String? ?? '',
+      phoneNumber: json['phone_number'] as String? ?? '',
+      professionalTitle: json['professional_title'] as String? ?? '',
+      yearsOfExperience: (json['years_of_experience'] as num?)?.toInt() ?? 0,
+      avatarUrl: json['user_profile_image_url'] as String?,
+      about: json['about'] as String?,
+      status: ProviderStatus.fromString(json['status'] as String),
+      rejectionReason: json['rejection_reason'] as String?,
+      submittedAt: json['submitted_at'] != null
+          ? DateTime.parse(json['submitted_at'] as String)
           : null,
-      jobsCompleted: json['jobsCompleted'] as int,
-      status: ProviderStatus.values.firstWhere(
-        (e) => e.toString().split('.').last == json['status'],
-        orElse: () => ProviderStatus.pending,
-      ),
-      documents: (json['documents'] as List)
-          .map((e) => DocumentModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      availability: Map<String, String>.from(json['availability'] as Map),
-      locationName: json['locationName'] as String,
-      locationRadius: json['locationRadius'] as String,
-      description: json['description'] as String? ?? '',
+      reviewedAt: json['reviewed_at'] != null
+          ? DateTime.parse(json['reviewed_at'] as String)
+          : null,
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
+      coverageRadiusKm: (json['coverage_radius_km'] as num?)?.toDouble(),
+      services:
+          (json['services'] as List<dynamic>?)
+              ?.map(
+                (e) => ProviderServiceModel.fromJson(e as Map<String, dynamic>),
+              )
+              .toList() ??
+          [],
+      availability:
+          (json['availability'] as List<dynamic>?)
+              ?.map(
+                (e) => AvailabilityModel.fromJson(e as Map<String, dynamic>),
+              )
+              .toList() ??
+          [],
+      documents:
+          (json['documents'] as List<dynamic>?)
+              ?.map((e) => DocumentModel.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
     );
   }
+}
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'email': email,
-      'phoneNumber': phoneNumber,
-      'professionalTitle': professionalTitle,
-      'yearsOfExperience': yearsOfExperience,
-      'avatarUrl': avatarUrl,
-      'categories': categories,
-      'submittedAt': submittedAt.toIso8601String(),
-      'actionTakenAt': actionTakenAt?.toIso8601String(),
-      'rating': rating,
-      'jobsCompleted': jobsCompleted,
-      'status': status.toString().split('.').last,
-      'documents': documents.map((e) => (e as DocumentModel).toJson()).toList(),
-      'availability': availability,
-      'locationName': locationName,
-      'locationRadius': locationRadius,
-      'description': description,
-    };
+class ProviderServiceModel extends ProviderServiceEntity {
+  const ProviderServiceModel({
+    required super.id,
+    required super.categoryId,
+    required super.categoryTitle,
+    required super.categoryIcon,
+  });
+
+  factory ProviderServiceModel.fromJson(Map<String, dynamic> json) {
+    return ProviderServiceModel(
+      id: json['id'] as String,
+      categoryId: json['category_id'] as String,
+      categoryTitle: json['category_title'] as String? ?? '',
+      categoryIcon: json['category_icon'] as String? ?? '',
+    );
+  }
+}
+
+class AvailabilityModel extends AvailabilityEntity {
+  const AvailabilityModel({
+    required super.id,
+    required super.dayOfWeek,
+    required super.isEnabled,
+    required super.startTime,
+    required super.endTime,
+  });
+
+  factory AvailabilityModel.fromJson(Map<String, dynamic> json) {
+    return AvailabilityModel(
+      id: json['id'] as String,
+      dayOfWeek: json['day_of_week'] as int,
+      isEnabled: json['is_enabled'] as bool,
+      startTime: json['start_time'] as String,
+      endTime: json['end_time'] as String,
+    );
   }
 }
 
 class DocumentModel extends DocumentEntity {
   const DocumentModel({
-    required super.title,
-    required super.uploadedAt,
-    required super.url,
+    required super.id,
+    required super.documentType,
+    required super.fileUrl,
+    super.originalFilename,
   });
 
   factory DocumentModel.fromJson(Map<String, dynamic> json) {
     return DocumentModel(
-      title: json['title'] as String,
-      uploadedAt: DateTime.parse(json['uploadedAt'] as String),
-      url: json['url'] as String,
+      id: json['id'] as String,
+      documentType: json['document_type'] as String,
+      fileUrl: json['file_url'] as String,
+      originalFilename: json['original_filename'] as String?,
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'title': title,
-      'uploadedAt': uploadedAt.toIso8601String(),
-      'url': url,
-    };
   }
 }

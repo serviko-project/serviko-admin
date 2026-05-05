@@ -22,7 +22,6 @@ class ProvidersTabBar extends ConsumerWidget {
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
-            // All Providers Tab
             _TabItem(
               title: 'All Providers',
               isActive: currentStatus == null,
@@ -30,30 +29,28 @@ class ProvidersTabBar extends ConsumerWidget {
                   .read(providerStatusFilterProvider.notifier)
                   .setStatus(null),
             ),
-
-            // Pending Approval Tab with Badge Count
             _TabItem(
               title: 'Pending Approval',
               isActive: currentStatus == ProviderStatus.pending,
               onTap: () => ref
                   .read(providerStatusFilterProvider.notifier)
                   .setStatus(ProviderStatus.pending),
-              badgeCount: pendingCountAsync.maybeWhen(
-                data: (count) => count,
-                orElse: () => 0,
-              ),
+              badgeCount: pendingCountAsync.value ?? 0,
             ),
-
-            // Active Providers Tab
             _TabItem(
-              title: 'Active',
-              isActive: currentStatus == ProviderStatus.active,
+              title: 'Approved',
+              isActive: currentStatus == ProviderStatus.approved,
               onTap: () => ref
                   .read(providerStatusFilterProvider.notifier)
-                  .setStatus(ProviderStatus.active),
+                  .setStatus(ProviderStatus.approved),
             ),
-
-            // Blocked Providers Tab
+            _TabItem(
+              title: 'Rejected',
+              isActive: currentStatus == ProviderStatus.rejected,
+              onTap: () => ref
+                  .read(providerStatusFilterProvider.notifier)
+                  .setStatus(ProviderStatus.rejected),
+            ),
             _TabItem(
               title: 'Blocked',
               isActive: currentStatus == ProviderStatus.blocked,
