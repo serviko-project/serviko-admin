@@ -102,6 +102,27 @@ final pendingProvidersCountProvider = FutureProvider.autoDispose<int>((
   return meta.total;
 });
 
+// --- Active Providers Count ---
+final activeProvidersCountProvider = FutureProvider.autoDispose<int>((
+  ref,
+) async {
+  final repository = ref.watch(providerRepositoryProvider);
+  final (_, meta) = await repository.getProviders(
+    status: ProviderStatus.approved,
+    page: 1,
+    limit: 1,
+  );
+  return meta.total;
+});
+
+// --- Recent Providers for Dashboard ---
+final recentProvidersProvider =
+    FutureProvider.autoDispose<List<ProviderListItemEntity>>((ref) async {
+      final repository = ref.watch(providerRepositoryProvider);
+      final (providers, _) = await repository.getProviders(page: 1, limit: 4);
+      return providers;
+    });
+
 // --- Provider Details ---
 final providerDetailsProvider = FutureProvider.autoDispose
     .family<ProviderEntity, String>((ref, id) async {

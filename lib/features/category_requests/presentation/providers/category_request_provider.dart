@@ -75,6 +75,18 @@ final categoryRequestsListProvider =
       );
     });
 
+// Recent category requests for dashboard
+final recentCategoryRequestsProvider =
+    FutureProvider.autoDispose<List<CategoryRequestEntity>>((ref) async {
+      final repository = ref.watch(categoryRequestRepositoryProvider);
+      final (requests, _) = await repository.getCategoryRequests(
+        page: 1,
+        limit: 3,
+        status: CategoryRequestStatus.pending,
+      );
+      return requests;
+    });
+
 // Counts provider
 class CategoryRequestCountsNotifier
     extends AsyncNotifier<Map<CategoryRequestStatus, int>> {
@@ -118,6 +130,7 @@ class CategoryRequestController extends Notifier<AsyncValue<void>> {
       // Invalidate list and counts to fresh data
       ref.invalidate(categoryRequestsListProvider);
       ref.invalidate(categoryRequestCountsProvider);
+      ref.invalidate(recentCategoryRequestsProvider);
 
       state = const AsyncData(null);
     } catch (e, st) {
@@ -135,6 +148,7 @@ class CategoryRequestController extends Notifier<AsyncValue<void>> {
       // Invalidate list and counts to fresh data
       ref.invalidate(categoryRequestsListProvider);
       ref.invalidate(categoryRequestCountsProvider);
+      ref.invalidate(recentCategoryRequestsProvider);
 
       state = const AsyncData(null);
     } catch (e, st) {
