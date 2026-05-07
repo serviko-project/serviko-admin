@@ -53,12 +53,14 @@ class ProviderServiceEntity {
   final String categoryId;
   final String categoryTitle;
   final String categoryIcon;
+  final double basePricePerHour;
 
   const ProviderServiceEntity({
     required this.id,
     required this.categoryId,
     required this.categoryTitle,
     required this.categoryIcon,
+    required this.basePricePerHour,
   });
 }
 
