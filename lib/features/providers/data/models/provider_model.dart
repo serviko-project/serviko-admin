@@ -79,6 +79,7 @@ class ProviderServiceModel extends ProviderServiceEntity {
     required super.categoryId,
     required super.categoryTitle,
     required super.categoryIcon,
+    required super.basePricePerHour,
   });
 
   factory ProviderServiceModel.fromJson(Map<String, dynamic> json) {
@@ -87,6 +88,7 @@ class ProviderServiceModel extends ProviderServiceEntity {
       categoryId: json['category_id'] as String,
       categoryTitle: json['category_title'] as String? ?? '',
       categoryIcon: json['category_icon'] as String? ?? '',
+      basePricePerHour: (json['base_price_per_hour'] as num).toDouble(),
     );
   }
 }

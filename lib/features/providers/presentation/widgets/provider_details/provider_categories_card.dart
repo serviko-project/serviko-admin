@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/utils/icon_mapper.dart';
 import '../../../../providers/domain/entities/provider_entity.dart';
 import 'provider_section_title.dart';
 
@@ -24,12 +25,18 @@ class ProviderCategoriesCard extends StatelessWidget {
           children: provider.services
               .map(
                 (service) => Chip(
-                  labelPadding: const EdgeInsets.all(5),
-                  label: Text(
-                    service.categoryTitle,
-                    style: const TextStyle(fontSize: 13),
+                  labelPadding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 5,
                   ),
-                  avatar: const Icon(Icons.category_rounded, size: 16),
+                  label: Text(
+                    '${service.categoryTitle} • ₹${service.basePricePerHour.toStringAsFixed(0)}/hr',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  avatar: Icon(
+                    IconMapper.fromName(service.categoryIcon),
+                    size: 16,
+                  ),
                   backgroundColor: AppColors.background,
                   side: const BorderSide(color: AppColors.border),
                 ),
